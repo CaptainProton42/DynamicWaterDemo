@@ -49,8 +49,37 @@ So now that we have dicretized both derivatives, let's just plug the into the in
 $$\begin{align}
 \Delta f(\mathbf{x}, t) - \frac{1}{c^2} \frac{\partial^2 f(\mathbf{x}, t)}{\partial t^2} &= 0 \\
 \frac{z_{i+1, j} + z_{i, j+1} - 4 \cdot z_{i, j} + z_{i-1, j} + z_{i, j-1}}{h^2} - \frac{1}{c^2} \cdot \frac{z_{i, j}^{t+1} - 2 \cdot z_{i, j}^t + z_{i, j}^{t-1}}{\Delta t^2} &= 0\\
-z_{i, j}^{t+1} &= a \cdot (z_{i+1, j} + z_{i, j+1} + z_{i-1, j} + z_{i, j-1}) + (2 - 4a) \cdot z_{i, j}^t - z_{i, j}^{t-1}
+z_{i, j}^{t+1} &= a \cdot (z_{i+1, j}^t + z_{i, j+1}^t + z_{i-1, j}^t + z_{i, j-1}^t) + (2 - 4a) \cdot z_{i, j}^t - z_{i, j}^{t-1}
 \end{align}$$
 
 where we introduce $$a = \frac{c^2 \Delta t^2}{h^2}$$. In order to obtain a stable simulation, $$a < 0.5$$ needs to hold true. We have thus limits on our choice of $\Delta t$ and $h$, depending on how fast our waves should propagate. Grids with less points (and thus large $h$) are generally more stable but also less accurate. It is desirable to keep $\Delta t$ as small as reasonably possible which means high framerates will benefit our simulation.
 
+**Let's break down our final equation:** In order to update and retreive the displacement at point $$(i, j)$$ and time $$t$$, we need to know the grid neighbouring grid values at time $$t$$ as well as the previous displacement values at time $$t$$ and $$t-1$$. So we can start our grid from any arbitrary configuration and let it evolve over time. But how is our grid represented in our game?
+
+## Implementation
+
+In order to actually implement the finite difference method, I used fragment shaders. The beauty of textures is, that they are basically just two-dimensional grids that can hold values, or colors, at each grid point, or pixel. We use this convenient property and simply use a texture as our finite difference grid.
+
+In my implementation, the red and green channel of the texture combined hold the displacements $z_{i, j}$. I then use a fragment shader, to sample the texture and calculate the new values. We need two textures, to be precise. One holding the values $$z_{i, j}^t$$ which I called `z_tex` and one holding the values $$z_{i, j}^{t-1}$$ which I called `z_old_tex`. The resulting values $$z_{i, j}^{t+1}$$ are then rendered to a `Viewport` whose texture can then be read to get the surface displacement.
+
+The snippet below contains the part of the shader inside the `Viewport` which do the heavy lifting:
+
+```
+float pix_size = 1.0f/grid_points;
+
+vec4 z = a * (texture(z_tex, UV + vec2(pix_size, 0.0f))
+           + texture(z_tex, UV - vec2(pix_size, 0.0f))
+           + texture(z_tex, UV + vec2(0.0f, pix_size)) 
+           + texture(z_tex, UV - vec2(0.0f, pix_size)))
+        + (2.0f - 4.0f * a) * (texture(z_tex, UV)) - (texture(old_z_tex, UV));
+
+float z_new = z.r; // positive waves are stored in the red channel
+float z_new_neg = z.g; // negative waves are stored in the green channel
+
+...
+
+COLOR.r = z_new;
+COLOR.g = z_new_neg;
+```
+
+*Note that I store "positive" waves in the red and "negative" waves in the green channel. This is not particularly important now and I will explain this later.*
