@@ -49,6 +49,8 @@ So now that we have dicretized both derivatives, let's just plug the into the in
 $$\begin{align}
 \Delta f(\mathbf{x}, t) - \frac{1}{c^2} \frac{\partial^2 f(\mathbf{x}, t)}{\partial t^2} &= 0 \\
 \frac{z_{i+1, j} + z_{i, j+1} - 4 \cdot z_{i, j} + z_{i-1, j} + z_{i, j-1}}{h^2} - \frac{1}{c^2} \cdot \frac{z_{i, j}^{t+1} - 2 \cdot z_{i, j}^t + z_{i, j}^{t-1}}{\Delta t^2} &= 0\\
-
+z_{i, j}^{t+1} &= a \cdot (z_{i+1, j} + z_{i, j+1} + z_{i-1, j} + z_{i, j-1}) + (2 - 4a) \cdot z_{i, j}^t - z_{i, j}^{t-1}
 \end{align}$$
+
+where we introduce $$a = \frac{c^2 \Delta t^2}{h^2}$$. In order to obtain a stable simulation, $$a < 0.5$$ needs to hold true. We have thus limits on our choice of $\Delta t$ and $h$, depending on how fast our waves should propagate. Grids with less points (and thus large $h$) are generally more stable but also less accurate. It is desirable to keep $\Delta t$ as small as reasonably possible which means high framerates will benefit our simulation.
 
