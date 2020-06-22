@@ -83,3 +83,26 @@ COLOR.g = z_new_neg;
 ```
 
 *Note that I store "positive" waves in the red and "negative" waves in the green channel. This is not particularly important now and I will explain this later.*
+
+We also need a script that updates the textures each time step:
+
+```
+func _update(delta):
+           ...
+           update_height_map()
+
+           # Render one frame of the simulation viewport to update the simulation
+           simulation_viewport.render_target_update_mode = Viewport.UPDATE_ONCE
+
+           # Wait until the frame is rendered
+           yield(get_tree(), "idle_frame")
+           ...
+
+func update_height_map():
+	# Update the height maps
+	var img = simulation_texture.get_data() # Get currently rendered map
+	# Set current map as old map
+	var old_height_map = simulation_material.get_shader_param("z_tex")
+	simulation_material.get_shader_param("old_z_tex").set_data(old_height_map.get_data())
+	simulation_material.get_shader_param("z_tex").set_data(img) # Set the current height map from current render
+```
