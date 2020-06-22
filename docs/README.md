@@ -23,3 +23,19 @@ The opertator $$\Delta$$ is the so-called Laplace operator and denotes the *sum 
 $$\Delta = \frac{\partial^2}{\partial x^2} + \frac{\partial^2}{\partial y^2}$$
 
 Thus we can see that the wave equation connects the second spacial derivates of the water surface with its second derivative in time. This property results in the motion of waves as we would observe it in nature.
+
+## The finite difference method
+
+So now that we know what equation we want to solve we still have to figure out how to solve it. Generally, this cannot be done analytically so we resort to a much used numerical method: [the finite difference method](https://en.wikipedia.org/wiki/Finite_difference_method). In this method, we discretise the area in which we want to solve our equation into a grid. We then want to retreive the approximate solution at each point of that grid.
+
+In order to execute our finite difference method, we first need to discretize the wave equation as well. For this, we use *stencil*. More specifically, a *five point stencil* for the second derivative in space and a *three point stencil* for the second derivative in time.
+
+Let's start with the spatial derivative: As I stated previously, we dicretize the water surface as a grid. Let's denote $$z_{ij}$$ as the value of the function $$f$$ at the grid coordinates $$i$$ and $$j$$. Using a *five point stencil* we can then *approximate* the derivative at that point as
+
+$$\Delta f(\mathbf{x}_{ij}) = \frac{\partial^2 f(\mathbf{x}_{ij}}{\partial x^2} + \frac{\partial^2 f(\mathbf{x}_{ij}}{\partial y^2} = \frac{z_{i+1, j} - 2 \cdot z_{i, j} + z_{i-1, j}}{h^2} + \frac{z_{i, j+1} - 2 \cdot z_{i, j} + z_{i, j-1}}{h^2} = \frac{z_{i+1, j} + z_{i, j+1} - 4 \cdot z_{i, j} + z_{i-1, j} + z_{i, j-1}}{h^2}$$
+
+where $$h$$ is the distance between to grid points which is assumed to be equal in $$x$$ and $$y$$ direction. So, in order get the second spatial derivative at point $$(i, j)$$ we need to sample all direct (non-diagonal) neighbours of that point.
+
+However, our system also evolves over time and we need to approximate the time derivative as well. Since our game runs at a certain frame rate, our time discretization is already obvious. We always step forward in time with steps of $\Delta t$, which is just the physics delta time. In order to label the time discretization, we introduce the additional upper index $t$. So now, the displacement at grid point $$(i, j)$$ and time $t$ is denoted by $$z_{i, j}^t$$. In order to now approximate the second time derivate, we can just use the same formula as before but just in one dimension, time:
+
+$$\frac{\partial^2 f(\mathbf{x}, t)}{\partial t^2} = \frac{z_{i, j}^{t+1} - 2 \cdot z_{i, j}^t + z_{i, j}^{t-1}}{\Delta t^2}$$
