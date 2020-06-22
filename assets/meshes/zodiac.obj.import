@@ -1,0 +1,19 @@
+[remap]
+
+importer="wavefront_obj"
+type="Mesh"
+path="res://.import/zodiac.obj-58f9400a54254f4cd70ca78aea8a28aa.mesh"
+
+[deps]
+
+files=[ "res://.import/zodiac.obj-58f9400a54254f4cd70ca78aea8a28aa.mesh" ]
+
+source_file="res://assets/meshes/zodiac.obj"
+dest_files=[ "res://.import/zodiac.obj-58f9400a54254f4cd70ca78aea8a28aa.mesh", "res://.import/zodiac.obj-58f9400a54254f4cd70ca78aea8a28aa.mesh" ]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3( 1, 1, 1 )
+offset_mesh=Vector3( 0, 0, 0 )
+optimize_mesh=true

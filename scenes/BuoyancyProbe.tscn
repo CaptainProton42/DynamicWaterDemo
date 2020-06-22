@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://scripts/BuoyancyProbe.gd" type="Script" id=1]
+
+
+[node name="BuoyancyProbe" type="Position3D"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.127624, -0.026094, 0.05395 )
+script = ExtResource( 1 )
+water_node_path = NodePath("../../../Water")

@@ -1,0 +1,25 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=2]
+
+[sub_resource type="Shader" id=1]
+resource_local_to_scene = true
+code = "shader_type spatial;
+
+uniform float speed;
+
+render_mode world_vertex_coords, cull_front;
+
+void vertex() {
+	if (VERTEX.y < 0.0f) {
+		VERTEX.y = 0.0f;
+	}
+	COLOR.r = speed;
+}
+
+void fragment() {
+	ALBEDO.r = COLOR.r;
+}"
+
+[resource]
+resource_local_to_scene = true
+shader = SubResource( 1 )
+shader_param/speed = null
