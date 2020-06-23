@@ -366,9 +366,9 @@ we do not only check the vertex color but also the collision texture from `Colli
 
 <div class="row">
   <div class="column">
-    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_glitch_1.PNG" width="33%">
+    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_glitch_1.png" width="33%">
   </div>
   <div class="column">
-    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_glitch_2.PNG" width="33%">
+    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_glitch_2.png" width="33%">
   </div>
 </div>
