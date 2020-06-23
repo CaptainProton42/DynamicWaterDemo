@@ -310,14 +310,65 @@ For this, I created a simple cuboid in blender. I rounded the edges a bit to mak
 
 <div class="row">
   <div class="column">
-    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_mesh_1.PNG" style="width:100%">
+    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_mesh_1.PNG" width="33%">
   </div>
   <div class="column">
-    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_mesh_2.PNG" style="width:100%">
+    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_mesh_2.PNG" width="33%">
   </div>
   <div class="column">
-    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_mesh_3.PNG" style="width:100%">
+    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_mesh_3.PNG" width="33%">
   </div>
 </div>
 
-## Pitfalls and prospects
+I then simply added a shader to the mesh and displaced the vertices by reading from the height map:
+
+```
+void vertex() {
+	if (COLOR.r > 0.0f && texture(collision_texture, UV).r == 0.0f) {
+		float v = COLOR.r;
+		vec4 tex = texture(simulation_texture, UV);
+		float height = tex.r - tex.g;
+		VERTEX.y += amplitude * v * height;
+	}
+}
+```
+
+The quality of the water is much improved by also calculating the normals in the fragment shader:
+
+```
+void fragment() {
+	if (COLOR.r > 0.0f) {
+		float v = COLOR.r;
+		vec4 tex = texture(simulation_texture, UV);
+		vec4 tex_dx = texture(simulation_texture, UV + vec2(0.01, 0.0));
+		vec4 tex_dy = texture(simulation_texture, UV + vec2(0.0, 0.01));
+		float height = tex.r - tex.g;
+		float height_dx = tex_dx.r - tex_dx.g;
+		float height_dy = tex_dy.r - tex_dy.g;
+		NORMAL = v * normalize(mat3(INV_CAMERA_MATRIX)*(vec3(height_dx - height, 1.0, height_dx - height) / 0.01)) + (1.0f - v) * NORMAL;
+	}
+	
+	float fresnel = sqrt(1.0 - dot(NORMAL, VIEW));
+	RIM = 0.2;
+	METALLIC = 0.0;
+	ROUGHNESS = 0.01 * (1.0 - fresnel);
+	ALBEDO = water_color.rgb + (0.1f * fresnel);
+	ALPHA = 0.8f;
+}
+```
+
+Note, that in the first line of the vertex shader
+
+```
+if (COLOR.r > 0.0f && texture(collision_texture, UV).r == 0.0f) ...
+```
+we do not only check the vertex color but also the collision texture from `CollisionViewport`. This is to prevent waves from "glitching" through the boat: We do not visualise waves when the boat is currently intersecting with them. Below is a comparison with and without this tweak in place:
+
+<div class="row">
+  <div class="column">
+    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_glitch_1.PNG" width="33%">
+  </div>
+  <div class="column">
+    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_glitch_2.PNG" width="33%">
+  </div>
+</div>
