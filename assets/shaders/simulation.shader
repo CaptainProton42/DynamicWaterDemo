@@ -10,6 +10,8 @@ uniform float grid_points;
 uniform sampler2D collision_texture;
 uniform sampler2D old_collision_texture;
 
+uniform sampler2D land_texture;
+
 void fragment() {
 	float pix_size = 1.0f/grid_points;
 	
@@ -29,6 +31,12 @@ void fragment() {
 		z_new = amplitude * collision_state_new;
 	} else if (collision_state_new == 0.0f && collision_state_old > 0.0f) {
 		z_new_neg = amplitude * collision_state_old;
+	}
+	
+	float land = texture(land_texture, UV).r;
+	if (land > 0.0f) {
+		z_new = 0.0f;
+		z_new_neg = 0.0f;
 	}
 	
 	COLOR.r = z_new;

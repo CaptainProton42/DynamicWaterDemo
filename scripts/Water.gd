@@ -9,6 +9,7 @@ export(int, 1, 99999) var grid_points = 512 setget set_grid_points, get_grid_poi
 export var c = 0.065 # wave speed
 export var simulation_amplitude = 0.5  # amplitude of newly created waves in the simulation
 export var mesh_amplitude = 1.0 # amplitude of waves in the mesh shader
+export var land_texture : Texture
 
 # Current height map of the surface as raw byte array
 var surface_data = PoolByteArray()
@@ -92,6 +93,7 @@ func _initialize():
 	simulation_material.set_shader_param("old_z_tex", tex.duplicate())
 	simulation_material.set_shader_param("collision_texture", tex.duplicate())
 	simulation_material.set_shader_param("old_collision_texture", tex.duplicate())
+	simulation_material.set_shader_param("land_texture", land_texture)
 
 	# Set simulation parameters
 	var delta = 1.0 / ProjectSettings.get_setting("physics/common/physics_fps")
