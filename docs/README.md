@@ -69,21 +69,23 @@ In the editor, I created a `Viewport` called `SimulationViewport` which in retur
 The snippet below contains the part of the shader inside the `SimulationViewport`'s `ColorRect` which does the heavy lifting:
 
 ```
-float pix_size = 1.0f/grid_points;
+void fragment() {
+	float pix_size = 1.0f/grid_points;
 
-vec4 z = a * (texture(z_tex, UV + vec2(pix_size, 0.0f))
-           + texture(z_tex, UV - vec2(pix_size, 0.0f))
-           + texture(z_tex, UV + vec2(0.0f, pix_size)) 
-           + texture(z_tex, UV - vec2(0.0f, pix_size)))
-        + (2.0f - 4.0f * a) * (texture(z_tex, UV)) - (texture(old_z_tex, UV));
+	vec4 z = a * (texture(z_tex, UV + vec2(pix_size, 0.0f))
+		   + texture(z_tex, UV - vec2(pix_size, 0.0f))
+		   + texture(z_tex, UV + vec2(0.0f, pix_size)) 
+		   + texture(z_tex, UV - vec2(0.0f, pix_size)))
+		+ (2.0f - 4.0f * a) * (texture(z_tex, UV)) - (texture(old_z_tex, UV));
 
-float z_new = z.r; // positive waves are stored in the red channel
-float z_new_neg = z.g; // negative waves are stored in the green channel
+	float z_new = z.r; // positive waves are stored in the red channel
+	float z_new_neg = z.g; // negative waves are stored in the green channel
 
-...
+	...
 
-COLOR.r = z_new;
-COLOR.g = z_new_neg;
+	COLOR.r = z_new;
+	COLOR.g = z_new_neg;
+}
 ```
 
 *Note that I store "positive" waves in the red and "negative" waves in the green channel. This is not particularly important now and I will explain this later.*
@@ -162,6 +164,56 @@ This shader moves all vertices of a below a certain height up to that height, he
 Out `CollisionViewport` will now always show a projection of the parts of objects that are underwater to the water surface. This will obvisously not work well when an object is entirely submerged or has a hull than is thinner towards the top. However, for simple objects it seems to work reasonably well.
 
 We can also give information about the speed of objects to the `CollisionViewport` by setting the `speed` uniform of the shader which will then be written to the red channel of the viewport texture.
+
+Now that we have a texture containing the intersection of the boat hull with the surface we can pass this texture to our simulation shader and call this `collision_texture`. We also supply the collision texture from the *last frame* and call it `collision_texture_old`. We then read the red channels of both textures to `collision_state_new` and `collision_state_old`. By comparing these two values, we can differentiate between two important cases by adding the code below to our simulation fragment shader:
+
+```
+void fragment() {
+	...
+	float collision_state_old = texture(old_collision_texture, UV).r;
+	float collision_state_new = texture(collision_texture, UV).r;
+
+	if (collision_state_new > 0.0f && collision_state_old == 0.0f) {
+		z_new = amplitude * collision_state_new;
+	} else if (collision_state_new == 0.0f && collision_state_old > 0.0f) {
+		z_new_neg = amplitude * collision_state_old;
+	}
+	...
+}
+```
+
+In the first case, `collision_state_new` contains a value larger 0 but `collision_state_old` is 0. This means that the hull of the object now intersects this point on the grid but did not do so previously. In this case, we want to create a *positive* bow wave. Since the red channel is also set to the speed of the object, the height of that wave corresponds to the speed of the object.
+
+The second case is the opposite from the first one: The hull does *no longer* intersect this point on the grid. We create *negative* stern waves here. The complete fragment shader now looks like this: 
+
+```
+void fragment() {
+	float pix_size = 1.0f/grid_points;
+	
+	vec4 z = a * (texture(z_tex, UV + vec2(pix_size, 0.0f))
+					   + texture(z_tex, UV - vec2(pix_size, 0.0f))
+					   + texture(z_tex, UV + vec2(0.0f, pix_size)) 
+					   + texture(z_tex, UV - vec2(0.0f, pix_size)))
+				  + (2.0f - 4.0f * a) * (texture(z_tex, UV)) - (texture(old_z_tex, UV));
+				
+	float z_new = z.r; // positive waves are stored in the red channel
+	float z_new_neg = z.g; // negative waves are stored in the green channel
+				
+	float collision_state_old = texture(old_collision_texture, UV).r;
+	float collision_state_new = texture(collision_texture, UV).r;
+	
+	if (collision_state_new > 0.0f && collision_state_old == 0.0f) {
+		z_new = amplitude * collision_state_new;
+	} else if (collision_state_new == 0.0f && collision_state_old > 0.0f) {
+		z_new_neg = amplitude * collision_state_old;
+	}
+	
+	COLOR.r = z_new;
+	COLOR.g = z_new_neg;
+}
+```
+
+As noted previously, *positive* waves are created on the red channel and *negative* waves are created on the green channel. This is perfectly fine however, since waves do not interact and can computed in components which then later can be added up (you may now this phenomenon from [Waver interference](https://en.wikipedia.org/wiki/Wave_interference). The actual displacement or wave height simply can be retreived by subtracting the green channel from the red channel.
 
 ## Physics interaction
 
