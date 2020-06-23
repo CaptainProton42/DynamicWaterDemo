@@ -33,12 +33,14 @@ In order to execute our finite difference method, we first need to discretize th
 Let's start with the spatial derivative: As I stated previously, we dicretize the water surface as a grid. Let's denote $$z_{i, j}$$ as the value of the function $$f$$ at the grid coordinates $$i$$ and $$j$$. Using a *five point stencil* we can then *approximate* the derivative at that point as
 
 $$\begin{aligned}
-\Delta f(\mathbf{x}_{ij}) &\approx \frac{\partial^2 f(\mathbf{x}_{i, j})}{\partial x^2} + \frac{\partial^2 f(\mathbf{x}_{i, j})}{\partial y^2} \\
-&= \frac{z_{i+1, j} - 2 \cdot z_{i, j} + z_{i-1, j}}{h^2} + \frac{z_{i, j+1} - 2 \cdot z_{i, j} + z_{i, j-1}}{h^2} \\
+\Delta f(\mathbf{x}_{ij}) &= \frac{\partial^2 f(\mathbf{x}_{i, j})}{\partial x^2} + \frac{\partial^2 f(\mathbf{x}_{i, j})}{\partial y^2} \\
+&\approx \frac{z_{i+1, j} - 2 \cdot z_{i, j} + z_{i-1, j}}{h^2} + \frac{z_{i, j+1} - 2 \cdot z_{i, j} + z_{i, j-1}}{h^2} \\
 &= \frac{z_{i+1, j} + z_{i, j+1} - 4 \cdot z_{i, j} + z_{i-1, j} + z_{i, j-1}}{h^2}
 \end{aligned}$$
 
 where $$h$$ is the distance between to grid points which is assumed to be equal in $$x$$ and $$y$$ direction. So, in order get the second spatial derivative at point $$(i, j)$$ we need to sample all direct (non-diagonal) neighbours of that point.
+
+<div align="center"><img width="30%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/stencil.png"></div>
 
 However, our system also evolves over time and we need to approximate the time derivative as well. Since our game runs at a certain frame rate, our time discretization is already obvious. We always step forward in time with steps of $\Delta t$, which is just the physics delta time. In order to label the time discretization, we introduce the additional upper index $t$. So now, the displacement at grid point $$(i, j)$$ and time $t$ is denoted by $$z_{i, j}^t$$. In order to now approximate the second time derivate, we can just use the same formula as before but just in one dimension, time:
 
@@ -60,9 +62,11 @@ where we introduce $$a = \frac{c^2 \Delta t^2}{h^2}$$. In order to obtain a stab
 
 In order to actually implement the finite difference method, I used fragment shaders. The beauty of textures is, that they are basically just two-dimensional grids that can hold values, or colors, at each grid point, or pixel. We use this convenient property and simply use a texture as our finite difference grid.
 
-In my implementation, the red and green channel of the texture combined hold the displacements $z_{i, j}$. I then use a fragment shader, to sample the texture and calculate the new values. We need two textures, to be precise. One holding the values $$z_{i, j}^t$$ which I called `z_tex` and one holding the values $$z_{i, j}^{t-1}$$ which I called `z_old_tex`. The resulting values $$z_{i, j}^{t+1}$$ are then rendered to a `Viewport` whose texture can then be read to get the surface displacement.
+<div align="center"><img width="30%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/implementation.PNG"></div>
 
-The snippet below contains the part of the shader inside the `Viewport` which do the heavy lifting:
+In the editor, I created a `Viewport` called `SimulationViewport` which in return contains `ColorRect` of *the same size* as the `Viewport`. I can then apply a shader to the `ColorRect` in which we compute the simulation. I pass two textures to this shader: `z_tex` which holds the grid values $$z_{i, j}^t$$ from the last simulation step and `z_old_tex` which holds the grid values $$z_{i, j}^{t-1}$$ from the simulation step before that. The resulting values $$z_{i, j}^{t+1}$$ are then rendered to the `ColorRect` and thus the `SimulationViewport` by the fragmetn shader.
+
+The snippet below contains the part of the shader inside the `SimulationViewport`'s `ColorRect` which does the heavy lifting:
 
 ```
 float pix_size = 1.0f/grid_points;
@@ -84,7 +88,9 @@ COLOR.g = z_new_neg;
 
 *Note that I store "positive" waves in the red and "negative" waves in the green channel. This is not particularly important now and I will explain this later.*
 
-We also need a script that updates the textures each time step:
+You can see that the first assignment reads the neighbouring grid values as well as the current and last values at the current position and then combines them according to our formula. The resulting value is then assigned as `COLOR`.
+
+We also need a script that updates the simulation and textures each step. This is done in the script of the `Water` Node:
 
 ```
 func _update(delta):
