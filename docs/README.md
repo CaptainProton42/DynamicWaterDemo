@@ -135,37 +135,31 @@ I used a little trick to accomplish this. It's not perfect and makes some assump
 
 I created a second viewport called `CollisionViewport`. This viewport will hold a texture which contains the intersections of all floating objects with the surface.
 
-I then added a new camera called `CollisionCamera` to `CollisionViewport`. This camera uses on orthogonal projection and has its size set to the size of the water surface. The near and far planes are also set to just contain the water surface within the frustum. Thus, the camera's viewing frustum contains almost only the water surface.
+I then added a new camera called `CollisionCamera` to `CollisionViewport`. This camera uses on orthogonal projection and has its size set to the size of the water surface. The near plane is set to match the water surface and the far plane should be moved sufficiently far away.
 
 <div align="center"><img width=75%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/viewing_frustum.png"></div>
 
-I also set the camera's *Cull Mask* to layer 2 so that it only renders objects that are also on layer 2 and set the background color of the camera's environment to black.
+Next, I added a mesh to every node that should be able to create waves and called in `CollisionMesh`. This mesh defines the hull of our boat.
 
-I then created the following shader:
+<div align="center"><img width="30%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/collision_mesh.png"></div>
+
+This mesh has a special material: It consists of two passes: The first one is a shader material with a shader like this:
 
 ```
 shader_type spatial;
 
 uniform float speed;
 
-render_mode world_vertex_coords, cull_front;
-
-void vertex() {
-	if (VERTEX.y < 0.0f) {
-		VERTEX.y = 0.0f;
-	}
-}
+render_mode cull_front;
 
 void fragment() {
-	ALBEDO.r = speed
+	ALBEDO.r = speed;
 }
 ```
 
-This shader moves all vertices of a below a certain height up to that height, here `y = 0.0`. The mesh is basically "squished" to stay on top of the water surface. I also set `render_mode` `cull_front` so that only the *inside* of the mesh is drawn. I now add a child mesh `CollisionMesh` to *each node* that should be able to create waves. This mesh defines the shape of the object's hull. I then set the shader as the mesh's material and set the `layers` property of the mesh to `2` (the *same* layer `CollisionCamera` is detecting).
+The second pass is just a `SpatialMaterial` with albedo set to black and a higher render priority.
 
-<div align="center"><img width="30%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/collision_mesh.png"></div>
-
-`CollisionViewport` will now always show a projection of the parts of objects that are underwater to the water surface. This will obvisously not work well when an object is entirely submerged or has a hull than is thinner towards the top. However, for simple objects it seems to work reasonably well.
+The resulting material will draw the *inside* of the mesh whatever color we set it to and the *outside* plain black. Since the camera culls every fragment above the water surface, it will draw the inside of objects that intersect the surface. The viewport texture will then be black where there is no intersection and colored where a hull intersects.
 
 We can also give information about the speed of objects to the `CollisionViewport` by setting the `speed` uniform of the shader which will then be written to the red channel of the viewport texture.
 
