@@ -304,6 +304,20 @@ And that's it! Our simulation is complete! We still need to visualize the water 
 
 ## Graphics
 
+Visualising the water surface is quite easy. We already have the height map in the red and green channels of the `SimulationViewport`'s texture. The idea is, to read these values and set the vertex positions and normals of the water surface inside a shader accordingly.
 
+For this, I created a simple cuboid in blender. I rounded the edges a bit to make it more visually pleasing and then subdivided the top face of the cuboid into a grid. Note that this grid does not need to have the same resolution as the simulation grid. For me 200 x 200 vertices achieved reasonably pleasing results. I set the vertex colors of the grid vertices (that is the vertices that should actually be displaced) to red while leaving all the other vertices black and also UV mapped the surface so that the UVs on the grid go from 0 to 1 in both surface directions.
+
+<div class="row">
+  <div class="column">
+    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_mesh_1.PNG" style="width:100%">
+  </div>
+  <div class="column">
+    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_mesh_2.PNG" style="width:100%">
+  </div>
+  <div class="column">
+    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_mesh_3.PNG" style="width:100%">
+  </div>
+</div>
 
 ## Pitfalls and prospects
