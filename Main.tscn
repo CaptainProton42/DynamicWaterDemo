@@ -205,6 +205,7 @@ __meta__ = {
 }
 
 [node name="CollisionVisualisation" type="TextureRect" parent="UI"]
+visible = false
 margin_left = 4.10699
 margin_top = 536.153
 margin_right = 204.107
@@ -215,6 +216,7 @@ __meta__ = {
 }
 
 [node name="SimulationVisualisation" type="TextureRect" parent="UI"]
+visible = false
 margin_right = 202.0
 margin_bottom = 202.0
 texture = SubResource( 14 )
