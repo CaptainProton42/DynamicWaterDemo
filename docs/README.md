@@ -308,15 +308,15 @@ Visualising the water surface is quite easy. We already have the height map in t
 
 For this, I created a simple cuboid in blender. I rounded the edges a bit to make it more visually pleasing and then subdivided the top face of the cuboid into a grid. Note that this grid does not need to have the same resolution as the simulation grid. For me 200 x 200 vertices achieved reasonably pleasing results. I set the vertex colors of the grid vertices (that is the vertices that should actually be displaced) to red while leaving all the other vertices black and also UV mapped the surface so that the UVs on the grid go from 0 to 1 in both surface directions.
 
-<div class="row">
-  <div class="column">
-    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_mesh_1.PNG" width="33%">
+<div style="display: flex">
+  <div style="flex: 33.33%; padding: 5px">
+    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_mesh_1.PNG" width="100%">
   </div>
-  <div class="column">
-    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_mesh_2.PNG" width="33%">
+  <div style="flex: 33.33%; padding: 5px">
+    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_mesh_2.PNG" width="100%">
   </div>
-  <div class="column">
-    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_mesh_3.PNG" width="33%">
+  <div style="flex: 33.33%; padding: 5px">
+    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_mesh_3.PNG" width="100%">
   </div>
 </div>
 
@@ -365,10 +365,10 @@ if (COLOR.r > 0.0f && texture(collision_texture, UV).r == 0.0f) ...
 we do not only check the vertex color but also the collision texture from `CollisionViewport`. This is to prevent waves from "glitching" through the boat: We do not visualise waves when the boat is currently intersecting with them. Below is a comparison with and without this tweak in place:
 
 <div style="display: flex">
-  <div style="flex: 33.33%; padding: 5px">
-    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_glitch_1.png" width="33%">
+  <div style="flex: 50%; padding: 5px">
+    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_glitch_1.png" width="25%">
   </div>
-  <div style="flex: 33.33%; padding: 5px">
-    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_glitch_2.png" width="33%">
+  <div style="flex: 50%; padding: 5px">
+    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_glitch_2.png" width="25%">
   </div>
 </div>
