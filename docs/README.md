@@ -163,30 +163,49 @@ The resulting material will draw the *inside* of the mesh whatever color we set 
 
 We can also give information about the speed of objects to the `CollisionViewport` by setting the `speed` uniform of the shader which will then be written to the red channel of the viewport texture.
 
-Now that we have a texture containing the intersection of the boat hull with the surface we can pass this texture to our simulation shader and call this `collision_texture`. We also supply the collision texture from the *last frame* and call it `collision_texture_old`. We then read the red channels of both textures to `collision_state_new` and `collision_state_old`. By comparing these two values, we can differentiate between two important cases by adding the code below to our simulation fragment shader:
+Now that we have a texture containing the intersection of the boat hull with the surface we can pass this texture to our simulation shader and call it `collision_texture`. We also supply the collision texture from the *last frame* and call it `collision_texture_old`. We then read the red channels of both textures to `collision_state_new` and `collision_state_old`. By comparing these two values, we can differentiate between two important cases by adding the code below to our simulation fragment shader:
+
+As noted previously, *positive* waves are created on the red channel and *negative* waves are created on the green channel. This is perfectly fine however, since waves do not interact and can computed in components which then later can be added up (you may now this phenomenon from [Waver interference](https://en.wikipedia.org/wiki/Wave_interference). The actual displacement or wave height simply can be retreived by subtracting the green channel from the red channel.
+
+I also created a function `update_collision_texture` in the script of the `Water` node which works much like `update_height_map` in order to keep the collision textures up to date with `CollisionViewport`.
+
+## Land masses
+
+Other than boats or similar moving objects we can also have land masses like islands breaking the water surface. These objects obviously don't move but it would still be nice to have them interact with the water by breaking waves, especially since they are often larger.
+
+This can be accomplished by passing a third type of texture to the simulation shader. I call it `land_texture`. Since the land masses do not move, this texture can be baked before starting the scene (or crudely drawn in Paint, in my case). The land texture used for the demo scene above, for example simply looks like this:
+
+<div align="center"><img width="30%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/master/assets/textures/land_texture.png"></div>
+
+It is simply white wherever land should be and black where there is open water.
+
+We can then add a few lines to our simulation shader to prevent waves from passing through the white areas:
 
 ```
-void fragment() {
-	...
-	float collision_state_old = texture(old_collision_texture, UV).r;
-	float collision_state_new = texture(collision_texture, UV).r;
-
-	if (collision_state_new > 0.0f && collision_state_old == 0.0f) {
-		z_new = amplitude * collision_state_new;
-	} else if (collision_state_new == 0.0f && collision_state_old > 0.0f) {
-		z_new_neg = amplitude * collision_state_old;
-	}
-	...
+float land = texture(land_texture, UV).r;
+if (land > 0.0f) {
+	z_new = 0.0f;
+	z_new_neg = 0.0f;
 }
 ```
 
-In the first case, `collision_state_new` contains a value larger 0 but `collision_state_old` is 0. This means that the hull of the object now intersects this point on the grid but did not do so previously. In this case, we want to create a *positive* bow wave. Since the red channel is also set to the speed of the object, the height of that wave corresponds to the speed of the object.
-
-The second case is the opposite from the first one: The hull does *no longer* intersect this point on the grid. We create *negative* stern waves here.
-
-The complete fragment shader now looks like this: 
+Our *complete* simulation shader now looks like this:
 
 ```
+shader_type canvas_item;
+
+uniform sampler2D old_z_tex;
+uniform sampler2D z_tex;
+
+uniform float a;
+uniform float amplitude;
+uniform float grid_points;
+
+uniform sampler2D collision_texture;
+uniform sampler2D old_collision_texture;
+
+uniform sampler2D land_texture;
+
 void fragment() {
 	float pix_size = 1.0f/grid_points;
 	
@@ -194,7 +213,8 @@ void fragment() {
 					   + texture(z_tex, UV - vec2(pix_size, 0.0f))
 					   + texture(z_tex, UV + vec2(0.0f, pix_size)) 
 					   + texture(z_tex, UV - vec2(0.0f, pix_size)))
-				  + (2.0f - 4.0f * a) * (texture(z_tex, UV)) - (texture(old_z_tex, UV));
+				  + (2.0f - 4.0f * a) * (texture(z_tex, UV))
+				  - (texture(old_z_tex, UV));
 				
 	float z_new = z.r; // positive waves are stored in the red channel
 	float z_new_neg = z.g; // negative waves are stored in the green channel
@@ -208,14 +228,16 @@ void fragment() {
 		z_new_neg = amplitude * collision_state_old;
 	}
 	
+	float land = texture(land_texture, UV).r;
+	if (land > 0.0f) {
+		z_new = 0.0f;
+		z_new_neg = 0.0f;
+	}
+	
 	COLOR.r = z_new;
 	COLOR.g = z_new_neg;
 }
 ```
-
-As noted previously, *positive* waves are created on the red channel and *negative* waves are created on the green channel. This is perfectly fine however, since waves do not interact and can computed in components which then later can be added up (you may now this phenomenon from [Waver interference](https://en.wikipedia.org/wiki/Wave_interference). The actual displacement or wave height simply can be retreived by subtracting the green channel from the red channel.
-
-I also created a function `update_collision_texture` in the script of the `Water` node which works much like `update_height_map` in order to keep the collision textures up to date with `CollisionViewport`.
 
 ## RigidBody interaction
 
