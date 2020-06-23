@@ -365,10 +365,10 @@ if (COLOR.r > 0.0f && texture(collision_texture, UV).r == 0.0f) ...
 we do not only check the vertex color but also the collision texture from `CollisionViewport`. This is to prevent waves from "glitching" through the boat: We do not visualise waves when the boat is currently intersecting with them. Below is a comparison without and with this tweak in place:
 
 <div style="display: flex">
-  <div style="flex: 50%; padding: 5px">
-    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_glitch_1.png" align="center" width="25%">
+  <div align="center" style="flex: 50%; padding: 5px">
+    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_glitch_1.png" width="25%">
   </div>
-  <div style="flex: 50%; padding: 5px">
-    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_glitch_2.png" align="center" width="25%">
+  <div align="center" style="flex: 50%; padding: 5px">
+    <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_glitch_2.png" width="25%">
   </div>
 </div>
