@@ -4,8 +4,7 @@
 [ext_resource path="res://scripts/Boat.gd" type="Script" id=2]
 [ext_resource path="res://assets/materials/CollisionMaterial.tres" type="Material" id=3]
 [ext_resource path="res://assets/meshes/zodiac.obj" type="ArrayMesh" id=4]
-[ext_resource path="res://assets/meshes/zodiac_rump.obj" type="ArrayMesh" id=5]
-
+[ext_resource path="res://assets/meshes/zodiac_hull.obj" type="ArrayMesh" id=5]
 
 [sub_resource type="PhysicsMaterial" id=1]
 friction = 0.0

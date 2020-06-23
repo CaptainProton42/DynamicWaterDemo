@@ -21,7 +21,6 @@ metallic_specular = 0.0
 mass = 15.0
 script = ExtResource( 3 )
 buoyancy = 500.0
-created_waves_amplitude = 1.0
 
 [node name="CollisionMesh" type="MeshInstance" parent="."]
 layers = 2

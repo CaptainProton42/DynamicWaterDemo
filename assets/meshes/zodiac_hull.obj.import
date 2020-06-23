@@ -1,0 +1,19 @@
+[remap]
+
+importer="wavefront_obj"
+type="Mesh"
+path="res://.import/zodiac_hull.obj-e91bf052f3374ca805388c4f16a5786c.mesh"
+
+[deps]
+
+files=[ "res://.import/zodiac_hull.obj-e91bf052f3374ca805388c4f16a5786c.mesh" ]
+
+source_file="res://assets/meshes/zodiac_hull.obj"
+dest_files=[ "res://.import/zodiac_hull.obj-e91bf052f3374ca805388c4f16a5786c.mesh", "res://.import/zodiac_hull.obj-e91bf052f3374ca805388c4f16a5786c.mesh" ]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3( 1, 1, 1 )
+offset_mesh=Vector3( 0, 0, 0 )
+optimize_mesh=true
