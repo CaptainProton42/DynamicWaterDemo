@@ -210,11 +210,11 @@ void fragment() {
 	float pix_size = 1.0f/grid_points;
 	
 	vec4 z = a * (texture(z_tex, UV + vec2(pix_size, 0.0f))
-					   + texture(z_tex, UV - vec2(pix_size, 0.0f))
-					   + texture(z_tex, UV + vec2(0.0f, pix_size)) 
-					   + texture(z_tex, UV - vec2(0.0f, pix_size)))
-				  + (2.0f - 4.0f * a) * (texture(z_tex, UV))
-				  - (texture(old_z_tex, UV));
+		      + texture(z_tex, UV - vec2(pix_size, 0.0f))
+		      + texture(z_tex, UV + vec2(0.0f, pix_size)) 
+		      + texture(z_tex, UV - vec2(0.0f, pix_size)))
+		 + (2.0f - 4.0f * a) * (texture(z_tex, UV))
+		 - (texture(old_z_tex, UV));
 				
 	float z_new = z.r; // positive waves are stored in the red channel
 	float z_new_neg = z.g; // negative waves are stored in the green channel
