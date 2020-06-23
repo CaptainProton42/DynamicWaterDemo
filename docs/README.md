@@ -40,7 +40,7 @@ $$\begin{aligned}
 
 where $$h$$ is the distance between to grid points which is assumed to be equal in $$x$$ and $$y$$ direction. So, in order get the second spatial derivative at point $$(i, j)$$ we need to sample all direct (non-diagonal) neighbours of that point.
 
-<div align="center" width="100%"><img src=https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/stencil.png></img></div>
+<div align="center" width="50%"><img src=https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/stencil.png></img></div>
 
 However, our system also evolves over time and we need to approximate the time derivative as well. Since our game runs at a certain frame rate, our time discretization is already obvious. We always step forward in time with steps of $\Delta t$, which is just the physics delta time. In order to label the time discretization, we introduce the additional upper index $t$. So now, the displacement at grid point $$(i, j)$$ and time $t$ is denoted by $$z_{i, j}^t$$. In order to now approximate the second time derivate, we can just use the same formula as before but just in one dimension, time:
 
