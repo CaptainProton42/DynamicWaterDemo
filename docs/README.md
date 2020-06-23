@@ -184,7 +184,9 @@ void fragment() {
 
 In the first case, `collision_state_new` contains a value larger 0 but `collision_state_old` is 0. This means that the hull of the object now intersects this point on the grid but did not do so previously. In this case, we want to create a *positive* bow wave. Since the red channel is also set to the speed of the object, the height of that wave corresponds to the speed of the object.
 
-The second case is the opposite from the first one: The hull does *no longer* intersect this point on the grid. We create *negative* stern waves here. The complete fragment shader now looks like this: 
+The second case is the opposite from the first one: The hull does *no longer* intersect this point on the grid. We create *negative* stern waves here.
+
+The complete fragment shader now looks like this: 
 
 ```
 void fragment() {
@@ -215,6 +217,93 @@ void fragment() {
 
 As noted previously, *positive* waves are created on the red channel and *negative* waves are created on the green channel. This is perfectly fine however, since waves do not interact and can computed in components which then later can be added up (you may now this phenomenon from [Waver interference](https://en.wikipedia.org/wiki/Wave_interference). The actual displacement or wave height simply can be retreived by subtracting the green channel from the red channel.
 
-## Physics interaction
+I also created a function `update_collision_texture` in the script of the `Water` node which works much like `update_height_map` in order to keep the collision textures up to date with `CollisionViewport`.
+
+## RigidBody interaction
+
+So we can create waves now but in case we want to create an actual boat as a `RigidBody`, it will still simply fall through the water never to be seen again. In order to prevent this, we need to implement some form of interaction with the water surface.
+
+For this, I created a new node, `BuoyancyProbe`. The script of this node is quite short:
+
+```
+extends Spatial
+
+export var buoyancy = 5.0
+export var drag = 0.18 # Drag factor (total dampening is buoyancy*dampening)
+
+var water_node : Node
+
+var force : float = 0.0
+
+var velocity = Vector3(0.0, 0.0, 0.0)
+var old_pos = Vector3(0.0, 0.0, 0.0)
+
+func _physics_process(delta):
+	if water_node:
+		# Approximate the current velocity (needed for drag)
+		var pos = global_transform.origin
+		velocity = (pos - old_pos) / delta
+		old_pos = pos
+
+		# Get height of water at current position and calculate
+		# the current displacement.
+		var h = water_node.get_height(global_transform.origin)
+		var disp = global_transform.origin.y - h
+		if (disp < 0):
+			force = buoyancy*(-disp - drag * velocity.y)
+		else:
+			# No force if above water
+			force = 0.0
+```
+
+It detects how far it is currently submerged by retreiving the current height of the water surface via the function `get_height` on the `Water` node which is defined as follows:
+
+```
+func _physics_process(delta):
+	_update(delta)
+	surface_data = simulation_texture.get_data().get_data()
+	
+func get_height(global_pos):
+	# Get the height at the 
+	var local_pos = to_local(global_pos)
+
+	# Get pixel position
+	var y = int((local_pos.x + 25.0) / 50.0 * (grid_points))
+	var x =	int((local_pos.z + 25.0) / 50.0 * (grid_points))
+
+	# Just return a very low height when not inside texture
+	if x > grid_points - 1 or y > grid_points - 1 or x < 0 or y < 0:
+		return -99999.9
+
+	# Get height from surface data (in RGB8 format)
+	# This is faster than locking the image and using get_pixel()
+	var height = mesh_amplitude * (surface_data[3*(x*(grid_points) + y)] - surface_data[3*(x*(grid_points) + y) + 1]) / 255.0
+	return height
+```
+
+*I read directly from the raw data of the `SimulationViewport` texture's image so that I don't have to lock the image in order to do a pixel read for every `BuoyancyProbe` in the scene which would get very slow.*
+
+In case the `BuoyancyProbe` detects that it is underwater, it sets its `force` property to a value that depends linear on the submergence depth. Note, that this is not physically correct as the buoyant force actually depends on the mass that has been displaced by the object. Archimedes actually does look a bit sad now:
+
+<div align="center"><img width="30%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/archimedes.png"></div>
+
+However, a linear force will go to zero at the water surface and makes for a much smoother simulation.
+
+We can now add `BuoyancyProbes` as children to `RigidBody`s that we want to be buoyant at strategist positions and accumulate the resulting forces from a script like this:
+
+```
+for i in range(probes.get_child_count()):
+	if probes.get_child(i).force > 0.0:
+		add_force(Vector3(0.0, probes.get_child(i).force, 0.0) / probes.get_child_count(),
+		to_global(probes.get_child(i).translation) - global_transform.origin)
+```
+
+<div align="center"><img width="50%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/buoyancy_probes.PNG"></div>
+
+And that's it! Our simulation is complete! We still need to visualize the water surface though since right now it is only written to the `SimulationViewport`'s texture.
+
+## Graphics
+
+
 
 ## Pitfalls and prospects
