@@ -110,5 +110,59 @@ func update_height_map():
 	# Set current map as old map
 	var old_height_map = simulation_material.get_shader_param("z_tex")
 	simulation_material.get_shader_param("old_z_tex").set_data(old_height_map.get_data())
-	simulation_material.get_shader_param("z_tex").set_data(img) # Set the current height map from current render
+	# Set the current height map from current render
+	simulation_material.get_shader_param("z_tex").set_data(img)
 ```
+
+And that's it for our basic simulation. We now know how to propagate waves along the surface. The piece that is still missing is how to create them.
+
+## Creating waves
+
+We need to consider two types of waves, *bow* waves and *stern* waves. Bow waves are created at the moving boats hull, where pressure is generally high. Stern waves on the other hand, are created at the back of the boat, where water is rushing back and the pressure is generally lower. We thus create *positive* bow waves in front of the boat and *negative* stern waves behind the boat. Creating positive and negative waves just means manually setting grid points to positive and negative values.
+
+The intensity of both creatd wave types will also depend on the speed of the boat: The faster the boat, the higher the waves.
+
+In order to create waves we first need to know, *where* to create them. We thus need to know the intersection of the boat's hull with the water surface.
+
+I used a little trick to accomplish this without having to implement any costly algorithms. It's not perfect and makes some assumptions but it works reasonably well for simple objects:
+
+I created a *second* `Viewport`, called `CollisionViewport`. This `Viewport` will hold a texture which contains the intersections of all floating objects with the surface.
+
+I then assigned a new `Camera` called `CollisionCamera` to `CollisionViewport`. This camera uses on orthogonal projection and has its size set to the size of the water surface. The near and far planes are also set to just contain the water surface within the frustum. Thus, the camera's viewing frustum contains almost only the water surface.
+
+<div align="center"><img width="50%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/viewing_frustum.png"></div>
+
+I also set the cameras *Cull Mask* to layer 2 so that it only renders objects that are also on layer 2 to `CollisionViewport` and set the background color of the camera's environment to black.
+
+I then created a new shader that as follows:
+
+```
+shader_type spatial;
+
+uniform float speed;
+
+render_mode world_vertex_coords, cull_front;
+
+void vertex() {
+	if (VERTEX.y < 0.0f) {
+		VERTEX.y = 0.0f;
+	}
+	COLOR.r = speed;
+}
+
+void fragment() {
+	ALBEDO.r = COLOR.r;
+}
+```
+
+This shader moves all vertices of a below a certain height up to that height, here `y = 0.0` in world coordinates, the coordinates of the water surface. The mesh is basically "squished" to stay on top of the surface. I also set `render_mode` `cull_front` so that only the *inside* of the mesh is drawn. I now add a child mesh `CollisionMesh` to *each node* that should be able to create wave. This mesh defines the shape of the object's hull. I then set the shader as the mesh's material and set the `layers` property of the mesh to `2` (the *same* layer `CollisionCamera` is detecting).
+
+<div align="center"><img width="30%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/collision_mesh.png"></div>
+
+Out `CollisionViewport` will now always show a projection of the parts of objects that are underwater to the water surface. This will obvisously not work well when an object is entirely submerged or has a hull than is thinner towards the top. However, for simple objects it seems to work reasonably well.
+
+We can also give information about the speed of objects to the `CollisionViewport` by setting the `speed` uniform of the shader which will then be written to the red channel of the viewport texture.
+
+## Physics interaction
+
+## Pitfalls and prospects
