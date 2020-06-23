@@ -362,7 +362,7 @@ Note, that in the first line of the vertex shader
 ```
 if (COLOR.r > 0.0f && texture(collision_texture, UV).r == 0.0f) ...
 ```
-we do not only check the vertex color but also the collision texture from `CollisionViewport`. This is to prevent waves from "glitching" through the boat: We do not visualise waves when the boat is currently intersecting with them. Below is a comparison with and without this tweak in place:
+we do not only check the vertex color but also the collision texture from `CollisionViewport`. This is to prevent waves from "glitching" through the boat: We do not visualise waves when the boat is currently intersecting with them. Below is a comparison without and with this tweak in place:
 
 <div style="display: flex">
   <div style="flex: 50%; padding: 5px">
