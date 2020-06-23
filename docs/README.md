@@ -163,11 +163,30 @@ The resulting material will draw the *inside* of the mesh whatever color we set 
 
 We can also give information about the speed of objects to the `CollisionViewport` by setting the `speed` uniform of the shader which will then be written to the red channel of the viewport texture.
 
+<div align="center"><img width="40%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/wave_areas.png"></div>
+
 Now that we have a texture containing the intersection of the boat hull with the surface we can pass this texture to our simulation shader and call it `collision_texture`. We also supply the collision texture from the *last frame* and call it `collision_texture_old`. We then read the red channels of both textures to `collision_state_new` and `collision_state_old`. By comparing these two values, we can differentiate between two important cases by adding the code below to our simulation fragment shader:
+
+```
+void fragment() {
+	...
+	float collision_state_old = texture(old_collision_texture, UV).r;
+	float collision_state_new = texture(collision_texture, UV).r;
+	
+	if (collision_state_new > 0.0f && collision_state_old == 0.0f) {
+		z_new_pos = amplitude * collision_state_new;
+	} else if (collision_state_new == 0.0f && collision_state_old > 0.0f) {
+		z_new_neg = amplitude * collision_state_old;
+	}
+	...
+}
+```
 
 As noted previously, *positive* waves are created on the red channel and *negative* waves are created on the green channel. This is perfectly fine however, since waves do not interact and can computed in components which then later can be added up (you may now this phenomenon from [Waver interference](https://en.wikipedia.org/wiki/Wave_interference). The actual displacement or wave height simply can be retreived by subtracting the green channel from the red channel.
 
 I also created a function `update_collision_texture` in the script of the `Water` node which works much like `update_height_map` in order to keep the collision textures up to date with `CollisionViewport`.
+
+<div align="center"><img width="80%" src="https://github.com/CaptainProton42/DynamicWaterDemo/raw/media/wave_creation.gif"></div>
 
 ## Land masses
 
@@ -184,7 +203,7 @@ We can then add a few lines to our simulation shader to prevent waves from passi
 ```
 float land = texture(land_texture, UV).r;
 if (land > 0.0f) {
-	z_new = 0.0f;
+	z_new_pos = 0.0f;
 	z_new_neg = 0.0f;
 }
 ```
@@ -216,25 +235,25 @@ void fragment() {
 		 + (2.0f - 4.0f * a) * (texture(z_tex, UV))
 		 - (texture(old_z_tex, UV));
 				
-	float z_new = z.r; // positive waves are stored in the red channel
+	float z_new_pos = z.r; // positive waves are stored in the red channel
 	float z_new_neg = z.g; // negative waves are stored in the green channel
 				
 	float collision_state_old = texture(old_collision_texture, UV).r;
 	float collision_state_new = texture(collision_texture, UV).r;
 	
 	if (collision_state_new > 0.0f && collision_state_old == 0.0f) {
-		z_new = amplitude * collision_state_new;
+		z_new_pos = amplitude * collision_state_new;
 	} else if (collision_state_new == 0.0f && collision_state_old > 0.0f) {
 		z_new_neg = amplitude * collision_state_old;
 	}
 	
 	float land = texture(land_texture, UV).r;
 	if (land > 0.0f) {
-		z_new = 0.0f;
+		z_new_pos = 0.0f;
 		z_new_neg = 0.0f;
 	}
 	
-	COLOR.r = z_new;
+	COLOR.r = z_new_pos;
 	COLOR.g = z_new_neg;
 }
 ```
