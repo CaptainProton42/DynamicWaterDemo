@@ -1,3 +1,9 @@
+---
+layout: page
+title: Dynamic Water
+permalink: /no_demo/
+---
+
 # Dynamic Water
 
 ## About
