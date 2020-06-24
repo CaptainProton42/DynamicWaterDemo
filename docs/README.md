@@ -74,22 +74,22 @@ The snippet below contains the part of the simulation shader assigned to `ColorR
 
 ```
 void fragment() {
-	float pix_size = 1.0f/grid_points;
+    float pix_size = 1.0f/grid_points;
 
-	vec4 z = a * (texture(z_tex, UV + vec2(pix_size, 0.0f))
-		   + texture(z_tex, UV - vec2(pix_size, 0.0f))
-		   + texture(z_tex, UV + vec2(0.0f, pix_size)) 
-		   + texture(z_tex, UV - vec2(0.0f, pix_size)))
-		+ (2.0f - 4.0f * a) * (texture(z_tex, UV))
-		- (texture(old_z_tex, UV));
+    vec4 z = a * (texture(z_tex, UV + vec2(pix_size, 0.0f))
+	        + texture(z_tex, UV - vec2(pix_size, 0.0f))
+	        + texture(z_tex, UV + vec2(0.0f, pix_size)) 
+	        + texture(z_tex, UV - vec2(0.0f, pix_size)))
+	     + (2.0f - 4.0f * a) * (texture(z_tex, UV))
+	     - (texture(old_z_tex, UV));
 
-	float z_new_pos = z.r; // positive waves are stored in the red channel
-	float z_new_neg = z.g; // negative waves are stored in the green channel
+    float z_new_pos = z.r; // positive waves are stored in the red channel
+    float z_new_neg = z.g; // negative waves are stored in the green channel
 
-	...
+    ...
 
-	COLOR.r = z_new_pos;
-	COLOR.g = z_new_neg;
+    COLOR.r = z_new_pos;
+    COLOR.g = z_new_neg;
 }
 ```
 
@@ -101,24 +101,24 @@ We also need a script that updates the simulation as well as grid textures each 
 
 ```
 func _update():
-           ...
-           update_height_map()
+    ...
+    update_height_map()
 
-           # Render one frame of the simulation viewport to update the simulation
-           simulation_viewport.render_target_update_mode = Viewport.UPDATE_ONCE
+    # Render one frame of the simulation viewport to update the simulation
+    simulation_viewport.render_target_update_mode = Viewport.UPDATE_ONCE
 
-           # Wait until the frame is rendered
-           yield(get_tree(), "idle_frame")
-           ...
+    # Wait until the frame is rendered
+    yield(get_tree(), "idle_frame")
+    ...
 
 func update_height_map():
-	# Update the height maps
-	var img = simulation_texture.get_data() # Get currently rendered map
-	# Set current map as old map
-	var old_height_map = simulation_material.get_shader_param("z_tex")
-	simulation_material.get_shader_param("old_z_tex").set_data(old_height_map.get_data())
-	# Set the current height map from current render
-	simulation_material.get_shader_param("z_tex").set_data(img)
+    # Update the height maps
+    var img = simulation_texture.get_data() # Get currently rendered map
+    # Set current map as old map
+    var old_height_map = simulation_material.get_shader_param("z_tex")
+    simulation_material.get_shader_param("old_z_tex").set_data(old_height_map.get_data())
+    # Set the current height map from current render
+    simulation_material.get_shader_param("z_tex").set_data(img)
 ```
 
 And that's it for our basic simulation. We now know how to propagate waves along the surface but have yet to create them.
@@ -153,7 +153,7 @@ uniform float speed;
 render_mode cull_front;
 
 void fragment() {
-	ALBEDO.r = speed;
+    ALBEDO.r = speed;
 }
 ```
 
@@ -169,16 +169,16 @@ Now that we have a texture containing the intersection of the boat hull with the
 
 ```
 void fragment() {
-	...
-	float collision_state_old = texture(old_collision_texture, UV).r;
-	float collision_state_new = texture(collision_texture, UV).r;
-	
-	if (collision_state_new > 0.0f && collision_state_old == 0.0f) {
-		z_new_pos = amplitude * collision_state_new;
-	} else if (collision_state_new == 0.0f && collision_state_old > 0.0f) {
-		z_new_neg = amplitude * collision_state_old;
-	}
-	...
+    ...
+    float collision_state_old = texture(old_collision_texture, UV).r;
+    float collision_state_new = texture(collision_texture, UV).r;
+
+    if (collision_state_new > 0.0f && collision_state_old == 0.0f) {
+        z_new_pos = amplitude * collision_state_new;
+    } else if (collision_state_new == 0.0f && collision_state_old > 0.0f) {
+        z_new_neg = amplitude * collision_state_old;
+    }
+    ...
 }
 ```
 
@@ -203,8 +203,8 @@ We can then add a few lines to our simulation shader to prevent waves from passi
 ```
 float land = texture(land_texture, UV).r;
 if (land > 0.0f) {
-	z_new_pos = 0.0f;
-	z_new_neg = 0.0f;
+    z_new_pos = 0.0f;
+    z_new_neg = 0.0f;
 }
 ```
 
@@ -226,35 +226,35 @@ uniform sampler2D old_collision_texture;
 uniform sampler2D land_texture;
 
 void fragment() {
-	float pix_size = 1.0f/grid_points;
-	
-	vec4 z = a * (texture(z_tex, UV + vec2(pix_size, 0.0f))
-		      + texture(z_tex, UV - vec2(pix_size, 0.0f))
-		      + texture(z_tex, UV + vec2(0.0f, pix_size)) 
-		      + texture(z_tex, UV - vec2(0.0f, pix_size)))
-		 + (2.0f - 4.0f * a) * (texture(z_tex, UV))
-		 - (texture(old_z_tex, UV));
-				
-	float z_new_pos = z.r; // positive waves are stored in the red channel
-	float z_new_neg = z.g; // negative waves are stored in the green channel
-				
-	float collision_state_old = texture(old_collision_texture, UV).r;
-	float collision_state_new = texture(collision_texture, UV).r;
-	
-	if (collision_state_new > 0.0f && collision_state_old == 0.0f) {
-		z_new_pos = amplitude * collision_state_new;
-	} else if (collision_state_new == 0.0f && collision_state_old > 0.0f) {
-		z_new_neg = amplitude * collision_state_old;
-	}
-	
-	float land = texture(land_texture, UV).r;
-	if (land > 0.0f) {
-		z_new_pos = 0.0f;
-		z_new_neg = 0.0f;
-	}
-	
-	COLOR.r = z_new_pos;
-	COLOR.g = z_new_neg;
+    float pix_size = 1.0f/grid_points;
+
+    vec4 z = a * (texture(z_tex, UV + vec2(pix_size, 0.0f))
+	          + texture(z_tex, UV - vec2(pix_size, 0.0f))
+	          + texture(z_tex, UV + vec2(0.0f, pix_size)) 
+	          + texture(z_tex, UV - vec2(0.0f, pix_size)))
+	     + (2.0f - 4.0f * a) * (texture(z_tex, UV))
+	     - (texture(old_z_tex, UV));
+
+    float z_new_pos = z.r; // positive waves are stored in the red channel
+    float z_new_neg = z.g; // negative waves are stored in the green channel
+
+    float collision_state_old = texture(old_collision_texture, UV).r;
+    float collision_state_new = texture(collision_texture, UV).r;
+
+    if (collision_state_new > 0.0f && collision_state_old == 0.0f) {
+        z_new_pos = amplitude * collision_state_new;
+    } else if (collision_state_new == 0.0f && collision_state_old > 0.0f) {
+        z_new_neg = amplitude * collision_state_old;
+    }
+
+    float land = texture(land_texture, UV).r;
+    if (land > 0.0f) {
+        z_new_pos = 0.0f;
+        z_new_neg = 0.0f;
+    }
+
+    COLOR.r = z_new_pos;
+    COLOR.g = z_new_neg;
 }
 ```
 
@@ -278,46 +278,46 @@ var velocity = Vector3(0.0, 0.0, 0.0)
 var old_pos = Vector3(0.0, 0.0, 0.0)
 
 func _physics_process(delta):
-	if water_node:
-		# Approximate the current velocity (needed for drag)
-		var pos = global_transform.origin
-		velocity = (pos - old_pos) / delta
-		old_pos = pos
+    if water_node:
+        # Approximate the current velocity (needed for drag)
+        var pos = global_transform.origin
+        velocity = (pos - old_pos) / delta
+        old_pos = pos
 
-		# Get height of water at current position and calculate
-		# the current displacement.
-		var h = water_node.get_height(global_transform.origin)
-		var disp = global_transform.origin.y - h
-		if (disp < 0):
-			force = buoyancy*(-disp - drag * velocity.y)
-		else:
-			# No force if above water
-			force = 0.0
+        # Get height of water at current position and calculate
+        # the current displacement.
+        var h = water_node.get_height(global_transform.origin)
+        var disp = global_transform.origin.y - h
+        if (disp < 0):
+            force = buoyancy*(-disp - drag * velocity.y)
+        else:
+            # No force if above water
+            force = 0.0
 ```
 
 It detects how far it is currently submerged by retreiving the current height of the water surface via the function `get_height` on the `Water` node which is defined as follows:
 
 ```
 func _physics_process(delta):
-	_update(delta)
-	surface_data = simulation_texture.get_data().get_data()
+    _update(delta)
+    surface_data = simulation_texture.get_data().get_data()
 	
 func get_height(global_pos):
-	# Get the height at the 
-	var local_pos = to_local(global_pos)
+    # Get the height at the 
+    var local_pos = to_local(global_pos)
 
-	# Get pixel position
-	var y = int((local_pos.x + 25.0) / 50.0 * (grid_points))
-	var x =	int((local_pos.z + 25.0) / 50.0 * (grid_points))
+    # Get pixel position
+    var y = int((local_pos.x + 25.0) / 50.0 * (grid_points))
+    var x = int((local_pos.z + 25.0) / 50.0 * (grid_points))
 
-	# Just return a very low height when not inside texture
-	if x > grid_points - 1 or y > grid_points - 1 or x < 0 or y < 0:
-		return -99999.9
+    # Just return a very low height when not inside texture
+    if x > grid_points - 1 or y > grid_points - 1 or x < 0 or y < 0:
+        return -99999.9
 
-	# Get height from surface data (in RGB8 format)
-	# This is faster than locking the image and using get_pixel()
-	var height = mesh_amplitude * (surface_data[3*(x*(grid_points) + y)] - surface_data[3*(x*(grid_points) + y) + 1]) / 255.0
-	return height
+    # Get height from surface data (in RGB8 format)
+    # This is faster than locking the image and using get_pixel()
+    var height = mesh_amplitude * (surface_data[3*(x*(grid_points) + y)] - surface_data[3*(x*(grid_points) + y) + 1]) / 255.0
+    return height
 ```
 
 *I read directly from the raw data of the `SimulationViewport` texture's image so that I don't have to lock the image in order to do a pixel read for every `BuoyancyProbe` in the scene which would get very slow.*
@@ -332,9 +332,9 @@ We can now add `BuoyancyProbes` as children to `RigidBody`s that we want to be b
 
 ```
 for i in range(probes.get_child_count()):
-	if probes.get_child(i).force > 0.0:
-		add_force(Vector3(0.0, probes.get_child(i).force, 0.0) / probes.get_child_count(),
-		to_global(probes.get_child(i).translation) - global_transform.origin)
+    if probes.get_child(i).force > 0.0:
+        add_force(Vector3(0.0, probes.get_child(i).force, 0.0) / probes.get_child_count(),
+	to_global(probes.get_child(i).translation) - global_transform.origin)
 ```
 
 <div align="center"><img width="50%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/buoyancy_probes.PNG"></div>
@@ -363,12 +363,12 @@ I then simply added a shader to the mesh and displaced the vertices by reading f
 
 ```
 void vertex() {
-	if (COLOR.r > 0.0f && texture(collision_texture, UV).r == 0.0f) {
-		float v = COLOR.r;
-		vec4 tex = texture(simulation_texture, UV);
-		float height = tex.r - tex.g;
-		VERTEX.y += amplitude * v * height;
-	}
+    if (COLOR.r > 0.0f && texture(collision_texture, UV).r == 0.0f) {
+	float v = COLOR.r;
+	vec4 tex = texture(simulation_texture, UV);
+	float height = tex.r - tex.g;
+	VERTEX.y += amplitude * v * height;
+    }
 }
 ```
 
@@ -376,23 +376,23 @@ The quality of the water is much improved by also calculating the normals in the
 
 ```
 void fragment() {
-	if (COLOR.r > 0.0f) {
-		float v = COLOR.r;
-		vec4 tex = texture(simulation_texture, UV);
-		vec4 tex_dx = texture(simulation_texture, UV + vec2(0.01, 0.0));
-		vec4 tex_dy = texture(simulation_texture, UV + vec2(0.0, 0.01));
-		float height = tex.r - tex.g;
-		float height_dx = tex_dx.r - tex_dx.g;
-		float height_dy = tex_dy.r - tex_dy.g;
-		NORMAL = v * normalize(mat3(INV_CAMERA_MATRIX)*(vec3(height_dx - height, 1.0, height_dx - height) / 0.01)) + (1.0f - v) * NORMAL;
-	}
+    if (COLOR.r > 0.0f) {
+	float v = COLOR.r;
+	vec4 tex = texture(simulation_texture, UV);
+	vec4 tex_dx = texture(simulation_texture, UV + vec2(0.01, 0.0));
+	vec4 tex_dy = texture(simulation_texture, UV + vec2(0.0, 0.01));
+	float height = tex.r - tex.g;
+	float height_dx = tex_dx.r - tex_dx.g;
+	float height_dy = tex_dy.r - tex_dy.g;
+	NORMAL = v * normalize(mat3(INV_CAMERA_MATRIX)*(vec3(height_dx - height, 1.0, height_dx - height) / 0.01)) + (1.0f - v) * NORMAL;
+    }
 	
-	float fresnel = sqrt(1.0 - dot(NORMAL, VIEW));
-	RIM = 0.2;
-	METALLIC = 0.0;
-	ROUGHNESS = 0.01 * (1.0 - fresnel);
-	ALBEDO = water_color.rgb + (0.1f * fresnel);
-	ALPHA = 0.8f;
+    float fresnel = sqrt(1.0 - dot(NORMAL, VIEW));
+    RIM = 0.2;
+    METALLIC = 0.0;
+    ROUGHNESS = 0.01 * (1.0 - fresnel);
+    ALBEDO = water_color.rgb + (0.1f * fresnel);
+    ALPHA = 0.8f;
 }
 ```
 
