@@ -16,7 +16,7 @@ My implementation uses a finite-differencing method in order to solve the physic
 
 ## The wave equation
 
-An important equation in phyiscs is the so-called [wave equation](https://en.wikipedia.org/wiki/Wave_equation). It describes the propagation of many types of waves like water waves, sound waves and even light. It therefore plays an important role in many fields of physics like optics and fluid dynamics, acoustics and electrodynamics.
+A very important equation in phyiscs is the so-called [wave equation](https://en.wikipedia.org/wiki/Wave_equation). It describes the propagation of many types of waves like water waves, sound waves and even light. It therefore plays a large role in many fields of physics like optics and fluid dynamics, acoustics and electrodynamics. We can use it to describe the behaviour of our waves as well.
 
 The equation itself is a [hyperbolic partial differential equation of second order](https://en.wikipedia.org/wiki/Hyperbolic_partial_differential_equation). If this sounds very complex, don't worry, the equation itself is actually quite short:
 
