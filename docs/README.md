@@ -10,7 +10,7 @@ The entire code of this project is hosted on [GitHub](https://github.com/Captain
 
 You can also find me on Twitter [@CaptainProton](https://twitter.com/CaptainProton42) and on Reddit [u/CaptainProton42](https://www.reddit.com/user/captainproton42).
 
-## Implementation
+## How I did this
 
 My implementation uses a finite-differencing method in order to solve the physical equation governing the behaviour of open water surface waves, the wave equation, on a grid. I used the paper [Real-Time Open Water Environments with Interacting Objects](https://www.researchgate.net/publication/221314832_Real-Time_Open_Water_Environments_with_Interacting_Objects) by H. Cords and O. Staadt as a reference. If you want to know more about the technical aspects of this implementation or more advanced techniques like infinite water, it's a really good read.
 
@@ -66,7 +66,7 @@ where we introduce $$a = \frac{c^2 \Delta t^2}{h^2}$$. In order to obtain a stab
 
 Now that we know the theory, let's get to the actual implementation.
 
-## Implementation
+## Implementation of the finite difference method
 
 In order to bring the finite difference method to life, I used fragment shaders. Textures are basically just two-dimensional grids that can hold values (colors) at each grid point (pixel). We make use of this convenient property and simply use a texture as the grid for our finite difference method.
 
