@@ -16,7 +16,7 @@ Below you will find a step-by-step explanation of the implementation.
 
 My implementation uses a finite-differencing method in order to solve the wave equation on a grid. I used the paper [Real-Time Open Water Environments with Interacting Objects](https://www.researchgate.net/publication/221314832_Real-Time_Open_Water_Environments_with_Interacting_Objects) by H. Cords and O. Staadt as a reference. If you want to know more about the technical aspects of this implementation or more advanced techniques like infinite water, it's a really good read.
 
-## The wave equation
+### The wave equation
 
 A very important equation in phyiscs is the [wave equation](https://en.wikipedia.org/wiki/Wave_equation). It describes the propagation of many types of waves like water waves, sound waves, and even light. It therefore plays a large role in many fields of physics like fluid dynamics, acoustics, and optics. We can use it to describe the behaviour of our waves as well.
 
@@ -32,7 +32,7 @@ $$\Delta = \frac{\partial^2}{\partial x^2} + \frac{\partial^2}{\partial y^2}$$
 
 Thus we can see that the wave equation connects the second spatial derivates of the wave height with its second derivative in time. This property results in the motion of waves as we would observe it in nature.
 
-## The finite difference method
+### The finite difference method
 
 So now that we know what equation we want to solve we still have to figure out how to obtain a solution. Generally, this cannot be done analytically so we resort to a very popular numerical method: [the finite difference method](https://en.wikipedia.org/wiki/Finite_difference_method). In this method, we discretise the area in which we want to solve our equation into a grid. We then determina an approximate solution at each point of that grid.
 
@@ -68,7 +68,7 @@ where we introduce $$a = \frac{c^2 \Delta t^2}{h^2}$$. In order to obtain a stab
 
 Now that we know the theory, let's get to the actual implementation.
 
-## Implementation of the finite difference method
+### Implementation of the finite difference method
 
 In order to bring the finite difference method to life, we use fragment shaders. Textures are basically just two-dimensional grids that can hold values (colors) at each grid point (pixel). We make use of this convenient property and simply use a texture as the grid for our finite difference method.
 
@@ -134,7 +134,7 @@ func update_height_map():
 
 And that's it for our basic simulation. We now know how to propagate waves along the surface but have yet to create them.
 
-## Creating waves
+### Creating waves
 
 When considering a boat moving through water, we need to be aware of two "types" of waves, *bow* waves and *stern* waves. Bow waves are created were the the boat's hull pushes away the water. Stern waves, on the other hand, are created behind the boat, where water is rushing back to fill the space the boat previously occupied. We thus create *positive* bow waves in front of the boat and *negative* stern waves behind the boat. Creating positive or negative waves just means manually setting grid points to positive or negative values.
 
@@ -207,7 +207,7 @@ Below is a visualization of the collision texture on the right and the resulting
 
 <br>
 
-## Land masses
+### Land masses
 
 Other than boats or similar moving objects we can also have land masses like islands interrupting the water surface. These objects obviously don't move but it would still be nice to have them interact with the water by breaking waves, especially since they are often large.
 
@@ -277,7 +277,7 @@ void fragment() {
 
 We have to implement one last step to make our simulation complete.
 
-## Buoyant RigidBodys
+### Buoyant RigidBodys
 
 We can create waves now but in case we want to create an actual boat as a `RigidBody`, it will still simply fall through the water never to be seen again. In order to prevent this, we need to implement some form of buoyancy.
 
@@ -371,7 +371,7 @@ And this are the probe positions of the boat:
 
 And that's it! Our simulation is complete! We still need to visualize the water surface though by reading from the `SimulationViewport`.
 
-## Graphics
+### Graphics
 
 Visualising the water surface is quite easy. We already have the displacement/height map stored in the red and green channels of the `SimulationViewport`'s texture. The idea is to read these values and set the vertex positions and normals of the water surface inside a shader accordingly.
 
