@@ -144,7 +144,7 @@ Next, I added a mesh to every node that should be able to create waves and calle
 
 <div align="center"><img width="30%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/collision_mesh.png"></div>
 
-This mesh has a special material: It consists of two passes: The first one is a shader material with a shader like this:
+This mesh has a special material: It consists of two passes: The first one is a `ShaderMaterial` with a shader `collision.shader` like this (this can also be done with a `SpatialMaterial` but I find this variant to be more verbose):
 
 ```
 shader_type spatial;
@@ -158,9 +158,9 @@ void fragment() {
 }
 ```
 
-The second pass is just a `SpatialMaterial` with albedo set to black and a higher render priority.
+The second pass is just a `SpatialMaterial` with albedo set to black and a *higher* render priority (so that front faces are drawn in front of back faces).
 
-The resulting material will draw the *inside* of the mesh whatever color we set it to and the *outside* plain black. Since the camera culls every fragment above the water surface (its near plane), it will draw the colored inside of objects that intersect the surface. The viewport texture will then be black where there is no intersection and colored where a hull intersects.
+The resulting material will draw the *inside* of the mesh whatever color we set from `speed` and the *outside* plain black. Since the camera culls every fragment above the water surface (its near plane), it will draw the colored inside of objects that intersect the surface. The viewport texture will then be black where there is no intersection and colored for all areas where a hull intersects.
 
 We can also give information about the speed of objects to the `CollisionViewport` by setting the `speed` uniform of the shader which will then be written to the red channel.
 
@@ -168,9 +168,9 @@ Now that we have a texture containing the intersection of the boat hull with the
 
 <div align="center"><img width="40%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/wave_areas.png"></div>
 
-In the figure above, we create positive bow waves in area a) and negative stern waves in area b).
+In the figure above, we create positive bow waves in area **a)** and negative stern waves in area **b)**.
 
-I use the following code in the fragment shader:
+I add the following code to the simulation fragment shader:
 
 ```
 void fragment() {
@@ -187,23 +187,25 @@ void fragment() {
 }
 ```
 
-As noted previously, *positive* waves are created on the red channel and *negative* waves are created on the green channel. This is perfectly fine however, since waves do not interact with each other and can be computed in components which can be added up later (you may now this phenomenon from [Wave interference](https://en.wikipedia.org/wiki/Wave_interference). The actual displacement or wave height simply can be retreived by subtracting the green channel from the red channel.
+As noted previously, *positive* waves are created on the red channel and *negative* waves are created on the green channel. This is perfectly fine however, since waves do not interact with each other and can be computed in components which can be added up later (you may now this phenomenon from [Wave interference](https://en.wikipedia.org/wiki/Wave_interference). The actual displacement or wave height can be retreived by subtracting the green channel from the red channel.
 
-I also created a function `update_collision_texture` in the script of the `Water` node which works much like `update_height_map` in order to keep the collision textures up to date with `CollisionViewport`.
+I also created a function `update_collision_texture` in the script of the `Water` node which works much like `update_height_map` in order to set `old_collision_texture` and `collision_texture` each frame.
 
-Below is a visualization of the collision texture on the right and the resulting displacement map on the left. You can also watch this visualisation live by making `CollisionVisualisation` and `DisplacementVisualisation` visible when runnning the scene from the editor.
+Below is a visualization of the collision texture on the right and the resulting displacement map on the left. You can also watch this visualisation live by making the nodes `CollisionVisualisation` and `SimulationVisualisation` visible when runnning the scene from the editor.
 
 <div align="center"><img width="80%" src="https://github.com/CaptainProton42/DynamicWaterDemo/raw/media/wave_creation.gif"></div>
+
+
 
 ## Land masses
 
 Other than boats or similar moving objects we can also have land masses like islands interrupting the water surface. These objects obviously don't move but it would still be nice to have them interact with the water by breaking waves, especially since they are often large.
 
-This can be accomplished by passing a third type of texture to the simulation shader. I call it `land_texture`. Since the land masses do not move, this texture can be baked before starting the scene (or crudely drawn in Paint, in my case). The land texture used for the demo scene above, for example, simply looks like this:
+This can be accomplished by passing a third type of texture to the simulation shader. I call it `land_texture`. Since the land masses do not move, this texture can be baked before running the scene (or crudely drawn in Paint, in my case). The land texture used for the demo scene above, for example, simply looks like this:
 
 <div align="center"><img width="30%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/master/assets/textures/land_texture.png"></div>
 
-It is white wherever land should be and black where there is open water. We can then add a few lines to our simulation shader to prevent waves from passing through the white areas:
+The white pixels correspond to land. We can then add a few lines to our simulation shader to prevent waves from passing through the white areas:
 
 ```
 float land = texture(land_texture, UV).r;
@@ -213,17 +215,17 @@ if (land > 0.0f) {
 }
 ```
 
-Our *complete* simulation shader now looks like this:
+Our *complete* simulation shader `simulation.shader` now looks like this:
 
 ```
 shader_type canvas_item;
 
-uniform sampler2D old_z_tex;
-uniform sampler2D z_tex;
-
 uniform float a;
 uniform float amplitude;
 uniform float grid_points;
+
+uniform sampler2D z_tex;
+uniform sampler2D old_z_tex;
 
 uniform sampler2D collision_texture;
 uniform sampler2D old_collision_texture;
@@ -265,9 +267,9 @@ void fragment() {
 
 We have to implement one last step to make our simulation complete.
 
-## RigidBody interaction
+## Buoyant RigidBodys
 
-So we can create waves now but in case we want to create an actual boat as a `RigidBody`, it will still simply fall through the water never to be seen again. In order to prevent this, we need to implement some form of interaction with the water surface.
+So we can create waves now but in case we want to create an actual boat as a `RigidBody`, it will still simply fall through the water never to be seen again. In order to prevent this, we need to implement some form of buoyancy.
 
 For this, I created a new node, `BuoyancyProbe`. The script of this node is quite short:
 
@@ -275,7 +277,7 @@ For this, I created a new node, `BuoyancyProbe`. The script of this node is quit
 extends Spatial
 
 export var buoyancy = 5.0
-export var drag = 0.18 # Drag factor (total dampening is buoyancy*dampening)
+export var drag = 0.18 # Drag factor (total dampening is buoyancy*drag)
 
 var water_node : Node
 
@@ -302,7 +304,7 @@ func _physics_process(delta):
             force = 0.0
 ```
 
-It detects how far it is currently submerged by retreiving the current height of the water surface via the function `get_height` on the `Water` node which is defined as follows:
+The `BuoyancyProve` detects how far it is currently submerged by retreiving the current height of the water surface via the function `get_height` on the `Water` node which is defined as follows:
 
 ```
 func _physics_process(delta):
@@ -314,8 +316,8 @@ func get_height(global_pos):
     var local_pos = to_local(global_pos)
 
     # Get pixel position
-    var y = int((local_pos.x + 25.0) / 50.0 * (grid_points))
-    var x = int((local_pos.z + 25.0) / 50.0 * (grid_points))
+    var y = int((local_pos.x + water_size / 2.0) / water_size * (grid_points))
+    var x = int((local_pos.z + water_size / 2.0) / water_size * (grid_points))
 
     # Just return a very low height when not inside texture
     if x > grid_points - 1 or y > grid_points - 1 or x < 0 or y < 0:
@@ -329,15 +331,15 @@ func get_height(global_pos):
     return height
 ```
 
-*I read directly from the raw data of the `SimulationViewport` texture's image so that I don't have to lock the image in order to do a pixel read for every `BuoyancyProbe` in the scene which would get very slow.*
+*I read directly from the raw data of the `SimulationViewport`'s texture so that I don't have to lock the image in order to do a pixel read for every `BuoyancyProbe` in the scene which would get very slow.*
 
-In case the `BuoyancyProbe` detects that it is underwater, it sets its `force` property to a value that depends linear on the submergence depth. Note, that this is not physically correct as the buoyant force actually depends on the mass that has been displaced by the object. Archimedes actually does look a bit sad now:
+In case the `BuoyancyProbe` detects that it is underwater, it sets its `force` property to a value that depends linear on the submergence depth (minus some drag). Note, that this is not physically correct as the buoyant force would actually depend on the mass that has been displaced by the body. Archimides does actually look a bit sad:
 
 <div align="center"><img width="30%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/archimedes.png"></div>
 
-However, a linear force will go to zero at the water surface and makes for a much smoother simulation.
+However, a linear force will go to zero at the water surface which makes for a much smoother simulation.
 
-We can now add `BuoyancyProbes` as children to `RigidBody`s that we want to be buoyant at strategist positions and accumulate the resulting forces from a script like this:
+We can now add `BuoyancyProbe`s as children to `RigidBody`s that we want to be buoyant at strategic positions and accumulate the resulting forces from a script like this:
 
 ```
 for i in range(probes.get_child_count()):
@@ -349,15 +351,17 @@ for i in range(probes.get_child_count()):
 		  - global_transform.origin)
 ```
 
+This is where I put the probes on the boat:
+
 <div align="center"><img width="50%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/buoyancy_probes.PNG"></div>
 
-And that's it! Our simulation is complete! We still need to visualize the water surface though since right now it is only written to the `SimulationViewport`'s texture.
+And that's it! Our simulation is complete! We still need to visualize the water surface though by reading from the `SimulationViewport`.
 
 ## Graphics
 
-Visualising the water surface is quite easy. We already have the height map in the red and green channels of the `SimulationViewport`'s texture. The idea is, to read these values and set the vertex positions and normals of the water surface inside a shader accordingly.
+Visualising the water surface is quite easy. We already have the displacement/height map in the red and green channels of the `SimulationViewport`'s texture. The idea is to read these values and set the vertex positions and normals of the water surface inside a shader accordingly.
 
-For this, I created a simple cuboid in blender. I rounded the edges a bit to make it more visually pleasing and then subdivided the top face of the cuboid into a grid. Note that this grid does not need to have the same resolution as the simulation grid. For me 200 x 200 vertices achieved reasonably pleasing results. I set the vertex colors of the grid vertices (that is the vertices that should actually be displaced) to red while leaving all the other vertices black and also UV mapped the surface so that the UVs on the grid go from 0 to 1 in both surface directions.
+For this, I created a simple cuboid in Blender. I rounded the edges a bit to make it more visually pleasing and then subdivided the top face of the cuboid into a grid. Note that this grid does not need to have the same resolution as the simulation grid as we add detail in the fragment shader. For me, 200 x 200 vertices achieved reasonably pleasing results. I set the vertex colors of the grid vertices (that is the vertices that should actually be displaced) to red while leaving all the other vertices black and mapped the surface so that the UVs on the grid go from 0 to 1 in both directions.
 
 <div style="display: flex">
   <div style="flex: 33.33%; padding: 5px">
@@ -371,20 +375,23 @@ For this, I created a simple cuboid in blender. I rounded the edges a bit to mak
   </div>
 </div>
 
-I then simply added a shader to the mesh and displaced the vertices by reading from the height map:
+I exported the mesh using the [Godot Engine Exporter](https://github.com/godotengine/godot-blender-exporter) for Blender since we need support for vertex colors.
+
+In Godot, I then simply added a shader to the mesh and displaced the vertices by reading from the height map:
 
 ```
 void vertex() {
     if (COLOR.r > 0.0f && texture(collision_texture, UV).r == 0.0f) {
-	float v = COLOR.r;
 	vec4 tex = texture(simulation_texture, UV);
 	float height = tex.r - tex.g;
-	VERTEX.y += amplitude * v * height;
+	VERTEX.y += amplitude * COLOR.r * height;
     }
 }
 ```
 
-The quality of the water is much improved by also calculating the normals in the fragment shader:
+*I also multiplied the resulting height with the vertex color to make the transition a bit smoother towards the edges.*
+
+We add detail by also calculating the normals in the fragment shader:
 
 ```
 void fragment() {
@@ -412,7 +419,7 @@ Note, that in the first line of the vertex shader
 ```
 if (COLOR.r > 0.0f && texture(collision_texture, UV).r == 0.0f) ...
 ```
-we do not only check the vertex color but also the collision texture from `CollisionViewport`. This is to prevent waves from "glitching" through the boat: We do not visualise waves when the boat is currently intersecting with them. Below is a comparison without and with this tweak in place:
+we do not only check the vertex color but also the collision texture from `CollisionViewport`. This is to prevent waves from "glitching" through the boat: We do not visualise waves when the boat is currently passing through them. Below is a comparison without and with this tweak in place:
 
 <div style="display: flex">
   <div align="center" style="flex: 50%; padding: 5px">
