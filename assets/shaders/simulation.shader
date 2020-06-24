@@ -1,11 +1,11 @@
 shader_type canvas_item;
 
-uniform sampler2D old_z_tex;
-uniform sampler2D z_tex;
-
 uniform float a;
 uniform float amplitude;
 uniform float grid_points;
+
+uniform sampler2D z_tex;
+uniform sampler2D old_z_tex;
 
 uniform sampler2D collision_texture;
 uniform sampler2D old_collision_texture;

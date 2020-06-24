@@ -26,4 +26,4 @@ func _physics_process(delta):
 	collision_mesh.get_surface_material(0).set_shader_param("speed", created_waves_amplitude * linear_velocity.length())
 	for i in range(probes.get_child_count()):
 		if probes.get_child(i).force > 0.0:
-			add_force(Vector3(0.0, probes.get_child(i).force, 0.0) / probes.get_child_count(), to_global(probes.get_child(i).translation) - global_transform.origin)
+			add_force(Vector3(0.0, probes.get_child(i).force, 0.0) / probes.get_child_count(), probes.get_child(i).global_transform.origin - global_transform.origin)

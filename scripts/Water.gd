@@ -11,6 +11,9 @@ export var simulation_amplitude = 0.5  # amplitude of newly created waves in the
 export var mesh_amplitude = 1.0 # amplitude of waves in the mesh shader
 export var land_texture : Texture
 
+# Size of the water body in both dimensions
+var water_size = 50.0
+
 # Current height map of the surface as raw byte array
 var surface_data = PoolByteArray()
 
@@ -109,8 +112,8 @@ func get_height(global_pos):
 	var local_pos = to_local(global_pos)
 
 	# Get pixel position
-	var y = int((local_pos.x + 25.0) / 50.0 * (grid_points))
-	var x =	int((local_pos.z + 25.0) / 50.0 * (grid_points))
+	var y = int((local_pos.x + water_size / 2.0) / water_size * (grid_points))
+	var x =	int((local_pos.z + water_size / 2.0) / water_size * (grid_points))
 
 	# Just return a very low height when not inside texture
 	if x > grid_points - 1 or y > grid_points - 1 or x < 0 or y < 0:
