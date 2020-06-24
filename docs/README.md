@@ -335,8 +335,11 @@ We can now add `BuoyancyProbes` as children to `RigidBody`s that we want to be b
 ```
 for i in range(probes.get_child_count()):
     if probes.get_child(i).force > 0.0:
-        add_force(Vector3(0.0, probes.get_child(i).force, 0.0) / probes.get_child_count(),
-	to_global(probes.get_child(i).translation) - global_transform.origin)
+        add_force(Vector3(0.0,
+			  probes.get_child(i).force,
+			  0.0) / probes.get_child_count(),
+		  probes.get_child(i).global_transform.origin
+		  - global_transform.origin)
 ```
 
 <div align="center"><img width="50%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/buoyancy_probes.PNG"></div>
@@ -386,15 +389,11 @@ void fragment() {
 	float height = tex.r - tex.g;
 	float height_dx = tex_dx.r - tex_dx.g;
 	float height_dy = tex_dy.r - tex_dy.g;
-	NORMAL = v * normalize(mat3(INV_CAMERA_MATRIX)*(vec3(height_dx - height, 1.0, height_dx - height) / 0.01)) + (1.0f - v) * NORMAL;
-    }
-	
-    float fresnel = sqrt(1.0 - dot(NORMAL, VIEW));
-    RIM = 0.2;
-    METALLIC = 0.0;
-    ROUGHNESS = 0.01 * (1.0 - fresnel);
-    ALBEDO = water_color.rgb + (0.1f * fresnel);
-    ALPHA = 0.8f;
+	NORMAL = v * normalize(mat3(INV_CAMERA_MATRIX)
+		   * (vec3(height_dx - height, 1.0, height_dx - height) / 0.01))
+		 + (1.0f - v) * NORMAL;
+    }	
+    ...
 }
 ```
 
