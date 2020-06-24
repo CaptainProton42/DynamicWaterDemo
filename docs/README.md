@@ -138,7 +138,7 @@ I created a second viewport called `CollisionViewport`. This viewport will hold 
 
 I then added a new camera called `CollisionCamera` to `CollisionViewport`. This camera uses on orthogonal projection and has its size set to the size of the water surface. The near plane is set to match the water surface and the far plane should be moved sufficiently far away.
 
-<div align="center"><img width=75%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/viewing_frustum.png"></div>
+<div align="center"><img width="75%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/viewing_frustum.png"></div>
 
 Next, I added a mesh to every node that should be able to create waves and called in `CollisionMesh`. This mesh defines the hull of our boat.
 
