@@ -6,7 +6,7 @@ Click anywhere to interact with objects or spawn crates. You can also change the
 
 ## About
 
-This page without the runnable demo scene: [](https://captainproton42.github.io/DynamicWaterDemo/no_demo/)
+View this page without the runnable demo scene [here](https://captainproton42.github.io/DynamicWaterDemo/no_demo/).
 
 The entire code of this project is hosted on [GitHub](https://github.com/CaptainProton42/DynamicWaterDemo). It is lincensed under MIT so feel free to do with it whatever you want.
 
