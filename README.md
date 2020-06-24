@@ -2,6 +2,8 @@
 
 A real-time GPU-based implementation of dynamic water surfaces made in the [Godot Engine](https://godotengine.org/).
 
+![](https://github.com/CaptainProton42/DynamicWaterDemo/raw/media/demo.gif)
+
 ## Running
 
 You can find a browser compatible demo and explanation of the implementation here: https://captainproton42.github.io/DynamicWaterDemo/.
