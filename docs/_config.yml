@@ -1,6 +1,5 @@
 title: Dynamic Water
 markdown: kramdown
-highlighter: rouge
 kramdown:
   math-engine: katex
 remote_theme: daattali/beautiful-jekyll
