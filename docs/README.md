@@ -116,7 +116,8 @@ func update_height_map():
     var img = simulation_texture.get_data() # Get currently rendered map
     # Set current map as old map
     var old_height_map = simulation_material.get_shader_param("z_tex")
-    simulation_material.get_shader_param("old_z_tex").set_data(old_height_map.get_data())
+    simulation_material.get_shader_param("old_z_tex") \
+        .set_data(old_height_map.get_data())
     # Set the current height map from current render
     simulation_material.get_shader_param("z_tex").set_data(img)
 ```
@@ -316,8 +317,8 @@ func get_height(global_pos):
 
     # Get height from surface data (in RGB8 format)
     # This is faster than locking the image and using get_pixel()
-    var height = mesh_amplitude * (surface_data[3*(x*(grid_points) + y)]
-    				 - surface_data[3*(x*(grid_points) + y) + 1])
+    var height = mesh_amplitude * (surface_data[3*(x*(grid_points) + y)] \
+    				 - surface_data[3*(x*(grid_points) + y) + 1]) \
 				/ 255.0
     return height
 ```
@@ -335,10 +336,10 @@ We can now add `BuoyancyProbes` as children to `RigidBody`s that we want to be b
 ```
 for i in range(probes.get_child_count()):
     if probes.get_child(i).force > 0.0:
-        add_force(Vector3(0.0,
-			  probes.get_child(i).force,
-			  0.0) / probes.get_child_count(),
-		  probes.get_child(i).global_transform.origin
+        add_force(Vector3(0.0, \
+			  probes.get_child(i).force, \
+			  0.0) / probes.get_child_count(), \
+		  probes.get_child(i).global_transform.origin \
 		  - global_transform.origin)
 ```
 
