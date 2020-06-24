@@ -140,7 +140,7 @@ In order to create waves we first need to know *where* to create them. We thus n
 
 I used a little trick to accomplish this:
 
-I created a second viewport called `CollisionViewport`. This viewport will hold a texture which contains the intersection areas of all floating objects with the surface.
+I created a second viewport called `CollisionViewport`. This viewport will hold a texture which contains the intersection areas of all objects with the surface.
 
 I then added a new camera called `CollisionCamera` to `CollisionViewport`. This camera uses on orthogonal projection and has its size set to that of the water surface. The near plane is set to match the water surface and the far plane should be moved sufficiently far away.
 
@@ -339,7 +339,7 @@ func get_height(global_pos):
 
 *I read directly from the raw data of the `SimulationViewport`'s texture so that I don't have to lock the image in order to do a pixel read for every `BuoyancyProbe` in the scene which would get very slow.*
 
-In case the `BuoyancyProbe` detects that it is underwater, it sets its `force` property to a value that depends linear on the submergence depth (minus some drag). Note, that this is not physically correct as the buoyant force would actually depend on the mass that has been displaced by the body. Archimides does actually look a bit sad:
+In case the `BuoyancyProbe` detects that it is underwater, it sets its `force` property to a value that depends linearly on the submergence depth (minus some drag). Note, that this is not physically correct as the buoyant force would actually depend on the mass that has been displaced by the body. Archimides does actually look a bit sad:
 
 <div align="center"><img width="30%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/archimedes.png"></div>
 
@@ -365,7 +365,7 @@ And that's it! Our simulation is complete! We still need to visualize the water 
 
 ## Graphics
 
-Visualising the water surface is quite easy. We already have the displacement/height map in the red and green channels of the `SimulationViewport`'s texture. The idea is to read these values and set the vertex positions and normals of the water surface inside a shader accordingly.
+Visualising the water surface is quite easy. We already have the displacement/height map stored in the red and green channels of the `SimulationViewport`'s texture. The idea is to read these values and set the vertex positions and normals of the water surface inside a shader accordingly.
 
 For this, I created a simple cuboid in Blender. I rounded the edges a bit to make it more visually pleasing and then subdivided the top face of the cuboid into a grid. Note that this grid does not need to have the same resolution as the simulation grid as we add detail in the fragment shader. For me, 200 x 200 vertices achieved reasonably pleasing results. I set the vertex colors of the grid vertices (that is the vertices that should actually be displaced) to red while leaving all the other vertices black and mapped the surface so that the UVs on the grid go from 0 to 1 in both directions.
 
