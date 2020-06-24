@@ -635,7 +635,7 @@ footer .footer-custom-content {
 }
 @media (min-width: 768px) {
   .intro-header {
-    margin-top: 2.0rem;
+    margin-top: 0.0rem;
   }
   .intro-header.big-img {
     margin-top: 5.6875rem; /* Full navbar is small navbar + 20px padding on each side when expanded */
