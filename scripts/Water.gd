@@ -38,11 +38,11 @@ func update_height_map():
 	simulation_material.get_shader_param("z_tex").set_data(img) # Set the current height map from current render
 
 func _physics_process(delta):
-	_update(delta)
+	_update()
 	surface_data = simulation_texture.get_data().get_data()
 
 var lock = false
-func _update(delta):
+func _update():
 	if not lock:
 		lock = true
 		update_collision_texture()
