@@ -72,7 +72,7 @@ I then applied a shader to the `ColorRect` which contains the simulation code. T
 
 The snippet below contains the part of the simulation shader assigned to `ColorRect` which does the heavy lifting:
 
-```GLSL
+~~~ GLSL
 void fragment() {
     float pix_size = 1.0f/grid_points;
 
@@ -91,7 +91,7 @@ void fragment() {
     COLOR.r = z_new_pos;
     COLOR.g = z_new_neg;
 }
-```
+~~~
 
 *Note that I store "positive" waves in the red and "negative" waves in the green channel. This is not particularly important now and I will explain this later on.*
 
