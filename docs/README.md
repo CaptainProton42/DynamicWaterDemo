@@ -4,6 +4,12 @@
 
 Click anywhere to interact with objects or spawn crates. You can also change the quality of the water texture and reset the scene.
 
+## About
+
+The entire code of this project is hosted on [GitHub](https://github.com/CaptainProton42/DynamicWaterDemo). It is lincensed under MIT so feel free to do with it whatever you want.
+
+You can also find me on Twitter [@CaptainProton](https://twitter.com/CaptainProton42) and on Reddit [u/CaptainProton42](https://www.reddit.com/user/captainproton42).
+
 ## Implementation
 
 My implementation uses a finite-differencing method in order to solve the physical equation governing the behaviour of open water surface waves, the wave equation, on a grid. I used the paper [Real-Time Open Water Environments with Interacting Objects](https://www.researchgate.net/publication/221314832_Real-Time_Open_Water_Environments_with_Interacting_Objects) by H. Cords and O. Staadt as a reference. If you want to know more about the technical aspects of this implementation or more advanced techniques like infinite water, it's a really good read.
@@ -430,3 +436,9 @@ we do not only check the vertex color but also the collision texture from `Colli
     <img src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/water_glitch_2.png" width="50%">
   </div>
 </div>
+
+## Conclusion
+
+I hope this tutorial was somewhat helpful to you. If you'd like, you can leave feedback over at my Twitter: [@CaptainProton24](https://twitter.com/CaptainProton42) or directly on GitHub.
+
+There are still many possibilities to expand this method: Using multiple grids for infinite water surfaces, choosing a more stable integration scheme or more advanced hull modelling. I repeat my advice to read [Real-Time Open Water Environments with Interacting Objects](https://www.researchgate.net/publication/221314832_Real-Time_Open_Water_Environments_with_Interacting_Objects) by H. Cords and O. Staadt for ideas on approaches.
