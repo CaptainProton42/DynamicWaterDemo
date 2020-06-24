@@ -390,7 +390,10 @@ void fragment() {
 	float height_dx = tex_dx.r - tex_dx.g;
 	float height_dy = tex_dy.r - tex_dy.g;
 	NORMAL = v * normalize(mat3(INV_CAMERA_MATRIX)
-		   * (vec3(height_dx - height, 1.0, height_dx - height) / 0.01))
+		   	     * (vec3(height_dx - height,
+			             1.0,
+				     height_dx - height)
+				/ 0.01))
 		 + (1.0f - v) * NORMAL;
     }	
     ...
