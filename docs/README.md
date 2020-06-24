@@ -72,7 +72,7 @@ I then applied a shader to the `ColorRect` which contains the simulation code. T
 
 The snippet below contains the part of the simulation shader assigned to `ColorRect` which does the heavy lifting:
 
-```
+```GLSL
 void fragment() {
     float pix_size = 1.0f/grid_points;
 
@@ -99,7 +99,7 @@ You can see that we first the neighbouring grid values as well as the current an
 
 We also need a script that updates the simulation as well as grid textures each step. This is done in a script assigned to the `Water` Node. `_update` is called each physics frame:
 
-```
+```GDScript
 func _update():
     ...
     update_height_map()
@@ -146,7 +146,7 @@ Next, I added a mesh to every node that should be able to create waves and calle
 
 This mesh has a special material: It consists of two passes: The first one is a shader material with a shader like this:
 
-```
+```GLSL
 shader_type spatial;
 
 uniform float speed;
@@ -168,7 +168,7 @@ We can also give information about the speed of objects to the `CollisionViewpor
 
 Now that we have a texture containing the intersection of the boat hull with the surface we can pass this texture to our simulation shader and call it `collision_texture`. We also supply the collision texture from the *last frame* and call it `collision_texture_old`. We then read the red channels of both textures to `collision_state_new` and `collision_state_old`. By comparing these two values, we can differentiate between two important cases by adding the code below to our simulation fragment shader:
 
-```
+```GLSL
 void fragment() {
     ...
     float collision_state_old = texture(old_collision_texture, UV).r;
@@ -201,7 +201,7 @@ It is simply white wherever land should be and black where there is open water.
 
 We can then add a few lines to our simulation shader to prevent waves from passing through the white areas:
 
-```
+```GLSL
 float land = texture(land_texture, UV).r;
 if (land > 0.0f) {
     z_new_pos = 0.0f;
@@ -211,7 +211,7 @@ if (land > 0.0f) {
 
 Our *complete* simulation shader now looks like this:
 
-```
+```GLSL
 shader_type canvas_item;
 
 uniform sampler2D old_z_tex;
@@ -265,7 +265,7 @@ So we can create waves now but in case we want to create an actual boat as a `Ri
 
 For this, I created a new node, `BuoyancyProbe`. The script of this node is quite short:
 
-```
+```GLSL
 extends Spatial
 
 export var buoyancy = 5.0
@@ -298,7 +298,7 @@ func _physics_process(delta):
 
 It detects how far it is currently submerged by retreiving the current height of the water surface via the function `get_height` on the `Water` node which is defined as follows:
 
-```
+```GDScript
 func _physics_process(delta):
     _update(delta)
     surface_data = simulation_texture.get_data().get_data()
@@ -333,7 +333,7 @@ However, a linear force will go to zero at the water surface and makes for a muc
 
 We can now add `BuoyancyProbes` as children to `RigidBody`s that we want to be buoyant at strategist positions and accumulate the resulting forces from a script like this:
 
-```
+```GDScript
 for i in range(probes.get_child_count()):
     if probes.get_child(i).force > 0.0:
         add_force(Vector3(0.0, \
@@ -367,7 +367,7 @@ For this, I created a simple cuboid in blender. I rounded the edges a bit to mak
 
 I then simply added a shader to the mesh and displaced the vertices by reading from the height map:
 
-```
+```GLSL
 void vertex() {
     if (COLOR.r > 0.0f && texture(collision_texture, UV).r == 0.0f) {
 	float v = COLOR.r;
@@ -380,7 +380,7 @@ void vertex() {
 
 The quality of the water is much improved by also calculating the normals in the fragment shader:
 
-```
+```GLSL
 void fragment() {
     if (COLOR.r > 0.0f) {
 	float v = COLOR.r;
@@ -403,7 +403,7 @@ void fragment() {
 
 Note, that in the first line of the vertex shader
 
-```
+```GLSL
 if (COLOR.r > 0.0f && texture(collision_texture, UV).r == 0.0f) ...
 ```
 we do not only check the vertex color but also the collision texture from `CollisionViewport`. This is to prevent waves from "glitching" through the boat: We do not visualise waves when the boat is currently intersecting with them. Below is a comparison without and with this tweak in place:
