@@ -316,7 +316,9 @@ func get_height(global_pos):
 
     # Get height from surface data (in RGB8 format)
     # This is faster than locking the image and using get_pixel()
-    var height = mesh_amplitude * (surface_data[3*(x*(grid_points) + y)] - surface_data[3*(x*(grid_points) + y) + 1]) / 255.0
+    var height = mesh_amplitude * (surface_data[3*(x*(grid_points) + y)]
+    				 - surface_data[3*(x*(grid_points) + y) + 1])
+				/ 255.0
     return height
 ```
 
