@@ -132,11 +132,11 @@ The intensity of both creatd wave types will also depend on the speed of the boa
 
 In order to create waves we first need to know *where* to create them. We thus need to know the intersection of the boat's hull with the water surface.
 
-I used a little trick to accomplish this. It's not perfect and makes some assumptions but it works reasonably well for simple objects:
+I used a little trick to accomplish this:
 
-I created a second viewport called `CollisionViewport`. This viewport will hold a texture which contains the intersections of all floating objects with the surface.
+I created a second viewport called `CollisionViewport`. This viewport will hold a texture which contains the intersection areas of all floating objects with the surface.
 
-I then added a new camera called `CollisionCamera` to `CollisionViewport`. This camera uses on orthogonal projection and has its size set to the size of the water surface. The near plane is set to match the water surface and the far plane should be moved sufficiently far away.
+I then added a new camera called `CollisionCamera` to `CollisionViewport`. This camera uses on orthogonal projection and has its size set to that of the water surface. The near plane is set to match the water surface and the far plane should be moved sufficiently far away.
 
 <div align="center"><img width="75%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/viewing_frustum.png"></div>
 
@@ -160,13 +160,17 @@ void fragment() {
 
 The second pass is just a `SpatialMaterial` with albedo set to black and a higher render priority.
 
-The resulting material will draw the *inside* of the mesh whatever color we set it to and the *outside* plain black. Since the camera culls every fragment above the water surface, it will draw the inside of objects that intersect the surface. The viewport texture will then be black where there is no intersection and colored where a hull intersects.
+The resulting material will draw the *inside* of the mesh whatever color we set it to and the *outside* plain black. Since the camera culls every fragment above the water surface (its near plane), it will draw the colored inside of objects that intersect the surface. The viewport texture will then be black where there is no intersection and colored where a hull intersects.
 
-We can also give information about the speed of objects to the `CollisionViewport` by setting the `speed` uniform of the shader which will then be written to the red channel of the viewport texture.
+We can also give information about the speed of objects to the `CollisionViewport` by setting the `speed` uniform of the shader which will then be written to the red channel.
+
+Now that we have a texture containing the intersection of the boat hull with the surface we can pass this texture to our simulation shader and call it `collision_texture`. We also supply the collision texture from the *last frame* and call it `collision_texture_old`. We then read the red channels of both textures to `collision_state_new` and `collision_state_old`. By comparing these two values, we can differentiate between two important cases:
 
 <div align="center"><img width="40%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/wave_areas.png"></div>
 
-Now that we have a texture containing the intersection of the boat hull with the surface we can pass this texture to our simulation shader and call it `collision_texture`. We also supply the collision texture from the *last frame* and call it `collision_texture_old`. We then read the red channels of both textures to `collision_state_new` and `collision_state_old`. By comparing these two values, we can differentiate between two important cases by adding the code below to our simulation fragment shader:
+In the figure above, we create positive bow waves in area a) and negative stern waves in area b).
+
+I use the following code in the fragment shader:
 
 ```GLSL
 void fragment() {
@@ -183,23 +187,23 @@ void fragment() {
 }
 ```
 
-As noted previously, *positive* waves are created on the red channel and *negative* waves are created on the green channel. This is perfectly fine however, since waves do not interact and can computed in components which then later can be added up (you may now this phenomenon from [Waver interference](https://en.wikipedia.org/wiki/Wave_interference). The actual displacement or wave height simply can be retreived by subtracting the green channel from the red channel.
+As noted previously, *positive* waves are created on the red channel and *negative* waves are created on the green channel. This is perfectly fine however, since waves do not interact with each other and can be computed in components which can be added up later (you may now this phenomenon from [Wave interference](https://en.wikipedia.org/wiki/Wave_interference). The actual displacement or wave height simply can be retreived by subtracting the green channel from the red channel.
 
 I also created a function `update_collision_texture` in the script of the `Water` node which works much like `update_height_map` in order to keep the collision textures up to date with `CollisionViewport`.
+
+Below is a visualization of the collision texture on the right and the resulting displacement map on the left. You can also watch this visualisation live by making `CollisionVisualisation` and `DisplacementVisualisation` visible when runnning the scene from the editor.
 
 <div align="center"><img width="80%" src="https://github.com/CaptainProton42/DynamicWaterDemo/raw/media/wave_creation.gif"></div>
 
 ## Land masses
 
-Other than boats or similar moving objects we can also have land masses like islands breaking the water surface. These objects obviously don't move but it would still be nice to have them interact with the water by breaking waves, especially since they are often larger.
+Other than boats or similar moving objects we can also have land masses like islands interrupting the water surface. These objects obviously don't move but it would still be nice to have them interact with the water by breaking waves, especially since they are often large.
 
-This can be accomplished by passing a third type of texture to the simulation shader. I call it `land_texture`. Since the land masses do not move, this texture can be baked before starting the scene (or crudely drawn in Paint, in my case). The land texture used for the demo scene above, for example simply looks like this:
+This can be accomplished by passing a third type of texture to the simulation shader. I call it `land_texture`. Since the land masses do not move, this texture can be baked before starting the scene (or crudely drawn in Paint, in my case). The land texture used for the demo scene above, for example, simply looks like this:
 
 <div align="center"><img width="30%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/master/assets/textures/land_texture.png"></div>
 
-It is simply white wherever land should be and black where there is open water.
-
-We can then add a few lines to our simulation shader to prevent waves from passing through the white areas:
+It is white wherever land should be and black where there is open water. We can then add a few lines to our simulation shader to prevent waves from passing through the white areas:
 
 ```GLSL
 float land = texture(land_texture, UV).r;
@@ -258,6 +262,8 @@ void fragment() {
     COLOR.g = z_new_neg;
 }
 ```
+
+We have to implement one last step to make our simulation complete.
 
 ## RigidBody interaction
 
