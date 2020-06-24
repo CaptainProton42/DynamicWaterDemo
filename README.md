@@ -8,7 +8,7 @@ A real-time GPU-based implementation of dynamic water surfaces made in the [Godo
 
 You can find a browser compatible demo and explanation of the implementation here: https://captainproton42.github.io/DynamicWaterDemo/.
 
-This repository can also be cloned (see below) and the scene run from the editor.
+This repository can also be cloned (see below) to run the scene from the editor.
 
 ## Cloning
 
