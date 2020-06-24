@@ -1,5 +1,5 @@
 # Dynamic Water
-Click anywhere to interact with the scene. Scroll down for more info and a tutorial.
+
 <div align="center"><iframe width="730px" height="730px" frameBorder="0" src="water.html"></iframe></div>
 
 Click anywhere to interact with objects or spawn crates. You can also change the quality of the water texture and reset the scene.
@@ -10,9 +10,11 @@ The entire code of this project is hosted on [GitHub](https://github.com/Captain
 
 You can also find me on Twitter [@CaptainProton](https://twitter.com/CaptainProton42) and on Reddit [u/CaptainProton42](https://www.reddit.com/user/captainproton42).
 
+Below you will find a step-by-step explanation of the implementation.
+
 ## How I did this
 
-My implementation uses a finite-differencing method in order to solve the physical equation governing the behaviour of open water surface waves, the wave equation, on a grid. I used the paper [Real-Time Open Water Environments with Interacting Objects](https://www.researchgate.net/publication/221314832_Real-Time_Open_Water_Environments_with_Interacting_Objects) by H. Cords and O. Staadt as a reference. If you want to know more about the technical aspects of this implementation or more advanced techniques like infinite water, it's a really good read.
+My implementation uses a finite-differencing method in order to solve the wave equation on a grid. I used the paper [Real-Time Open Water Environments with Interacting Objects](https://www.researchgate.net/publication/221314832_Real-Time_Open_Water_Environments_with_Interacting_Objects) by H. Cords and O. Staadt as a reference. If you want to know more about the technical aspects of this implementation or more advanced techniques like infinite water, it's a really good read.
 
 ## The wave equation
 
@@ -193,7 +195,7 @@ void fragment() {
 }
 ```
 
-As noted previously, *positive* waves are created on the red channel and *negative* waves are created on the green channel. This is perfectly fine however, since waves do not interact with each other and can be computed in components which can be added up later (you may now this phenomenon from [Wave interference](https://en.wikipedia.org/wiki/Wave_interference). The actual displacement or wave height can be retreived by subtracting the green channel from the red channel.
+As noted previously, *positive* waves are created on the red channel and *negative* waves are created on the green channel. This is perfectly fine however, since waves do not interact with each other and can be computed in components which can be added up later (you may now this phenomenon from [wave interference](https://en.wikipedia.org/wiki/Wave_interference). The actual displacement or wave height can be retreived by subtracting the green channel from the red channel.
 
 I also created a function `update_collision_texture` in the script of the `Water` node which works much like `update_height_map` in order to set `old_collision_texture` and `collision_texture` each frame.
 
@@ -201,7 +203,7 @@ Below is a visualization of the collision texture on the right and the resulting
 
 <div align="center"><img width="80%" src="https://github.com/CaptainProton42/DynamicWaterDemo/raw/media/wave_creation.gif"></div>
 
-
+<br>
 
 ## Land masses
 
