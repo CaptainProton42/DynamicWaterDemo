@@ -1,6 +1,6 @@
 extends Spatial
 
-onready var plop = preload("res://scenes/Plop.tscn")
+onready var plop_scene = preload("res://scenes/Plop.tscn")
 onready var crate = preload("res://scenes/Crate.tscn")
 
 onready var water = get_node("Water") 
@@ -23,7 +23,7 @@ func spawn_crate(position):
 
 # Show a "plop" effect at the mouse position.
 func plop():
-	var plop_inst = plop.instance()
+	var plop_inst = plop_scene.instance()
 	plop_inst.position = get_viewport().get_mouse_position()
 	add_child(plop_inst)
 
