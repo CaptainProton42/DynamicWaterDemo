@@ -72,7 +72,7 @@ I then applied a shader to the `ColorRect` which contains the simulation code. T
 
 The snippet below contains the part of the simulation shader assigned to `ColorRect` which does the heavy lifting:
 
-```GLSL
+```
 void fragment() {
     float pix_size = 1.0f/grid_points;
 
