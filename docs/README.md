@@ -1,7 +1,5 @@
 # Dynamic Water
-
 Click anywhere to interact with the scene. Scroll down for more info and a tutorial.
-
 <div align="center"><iframe width="730px" height="730px" frameBorder="0" src="water.html"></iframe></div>
 
 Click anywhere to interact with objects or spawn crates. You can also change the quality of the water texture and reset the scene.
