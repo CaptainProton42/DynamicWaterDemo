@@ -361,7 +361,11 @@ for i in range(probes.get_child_count()):
 		  - global_transform.origin)
 ```
 
-This for example are the probe positions of the boat:
+Here is the hierarchy in the editor:
+
+<div align="center"><img width="30%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/buoyancy_probes_hierarchy.PNG"></div>
+
+And this are the probe positions of the boat:
 
 <div align="center"><img width="50%" src="https://raw.githubusercontent.com/CaptainProton42/DynamicWaterDemo/media/buoyancy_probes.PNG"></div>
 
