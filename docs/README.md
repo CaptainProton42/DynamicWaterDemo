@@ -449,6 +449,6 @@ we do not only check the vertex color but also the collision texture from `Colli
 
 ## Conclusion
 
-I hope this tutorial was somewhat helpful to you. If you'd like, you can leave feedback over at my Twitter [@CaptainProton24](https://twitter.com/CaptainProton42) or directly on GitHub.
+I hope this tutorial was somewhat helpful to you. If you'd like, you can leave feedback over at my Twitter [@CaptainProton42](https://twitter.com/CaptainProton42) or directly on GitHub.
 
 There are still many possibilities to expand this method: Using multiple grids for infinite water surfaces, choosing a more stable integration scheme or more advanced hull modelling. I repeat my advice to read [Real-Time Open Water Environments with Interacting Objects](https://www.researchgate.net/publication/221314832_Real-Time_Open_Water_Environments_with_Interacting_Objects) by H. Cords and O. Staadt for ideas on approaches.
