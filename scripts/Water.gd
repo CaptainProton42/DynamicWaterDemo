@@ -24,6 +24,7 @@ var collision_texture
 func update_collision_texture():
 	# Update the collision maps
 	var img = collision_texture.get_data() # Get the currently rendered map
+	img.convert(4) # Convert to RGBA, this is required on GLES3
 	# Set current map as old map
 	var old_collision_texture = simulation_material.get_shader_param("collision_texture")
 	simulation_material.get_shader_param("old_collision_texture").set_data(old_collision_texture.get_data())
@@ -32,6 +33,7 @@ func update_collision_texture():
 func update_height_map():
 	# Update the height maps
 	var img = simulation_texture.get_data() # Get currently rendered map
+	img.convert(4) # Convert to RGBA, this is required on GLES3
 	# Set current map as old map
 	var old_height_map = simulation_material.get_shader_param("z_tex")
 	simulation_material.get_shader_param("old_z_tex").set_data(old_height_map.get_data())
